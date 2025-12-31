@@ -1,0 +1,1822 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Protocol — Close the Ramp</title>
+  <style>
+    :root{
+      --bg0:#070A12;
+      --bg1:#0B1024;
+      --card: rgba(255,255,255,.06);
+      --card2: rgba(255,255,255,.08);
+      --border: rgba(255,255,255,.12);
+      --text:#EAF0FF;
+      --muted: rgba(234,240,255,.72);
+      --muted2: rgba(234,240,255,.54);
+      --accent:#7C5CFF;
+      --accent2:#22D3EE;
+      --good:#34D399;
+      --warn:#FBBF24;
+      --bad:#FB7185;
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 18px;
+      --radius2: 26px;
+      --pad: 16px;
+      --pad2: 22px;
+      --tap: 52px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: var(--sans);
+      color:var(--text);
+      background:
+        radial-gradient(900px 500px at 20% 10%, rgba(124,92,255,.28), transparent 60%),
+        radial-gradient(800px 500px at 80% 20%, rgba(34,211,238,.18), transparent 55%),
+        radial-gradient(900px 700px at 50% 110%, rgba(52,211,153,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      min-height:100%;
+    }
+    a{color:inherit}
+    .wrap{
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 22px 14px 90px;
+    }
+    header{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:space-between;
+      margin: 10px 0 18px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width: 0;
+    }
+    .logo{
+      width:44px;height:44px;
+      border-radius: 14px;
+      background:
+        radial-gradient(12px 12px at 30% 25%, rgba(255,255,255,.55), transparent 60%),
+        radial-gradient(18px 18px at 70% 60%, rgba(255,255,255,.25), transparent 60%),
+        linear-gradient(135deg, rgba(124,92,255,.9), rgba(34,211,238,.7));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,.16);
+    }
+    .title{
+      min-width:0;
+    }
+    .title h1{
+      margin:0;
+      font-size: 18px;
+      letter-spacing: .2px;
+      line-height:1.2;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .title p{
+      margin:4px 0 0;
+      font-size: 12.5px;
+      color: var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .toolbar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+    .chip{
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.05);
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      user-select:none;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+    .chip:active{transform: scale(.98)}
+    .chip b{font-size:12.5px}
+    .chip span{font-size:12px;color:var(--muted)}
+    .chip svg{opacity:.9}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+    }
+    .card{
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius2);
+      padding: var(--pad2);
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+      backdrop-filter: blur(10px);
+    }
+    .card h2{
+      margin:0 0 10px;
+      font-size: 15px;
+      letter-spacing:.2px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .sub{
+      color: var(--muted);
+      font-size: 12.5px;
+      margin: 0 0 14px;
+      line-height:1.5;
+    }
+
+    .row{
+      display:flex;
+      gap:12px;
+      align-items:stretch;
+      flex-wrap:wrap;
+    }
+    .stat{
+      flex: 1 1 160px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .stat .k{font-size:12px;color:var(--muted)}
+    .stat .v{font-size:22px;margin-top:8px;font-weight: 800; letter-spacing:.2px}
+    .stat .v small{font-size:12px;color:var(--muted);font-weight:700}
+    .bar{
+      margin-top: 12px;
+      height: 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .bar > div{
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,92,255,.9), rgba(34,211,238,.9));
+      border-radius: 999px;
+      transition: width .2s ease;
+    }
+
+    .bigbtn{
+      width: 100%;
+      height: var(--tap);
+      border: 0;
+      border-radius: 18px;
+      font-weight: 900;
+      letter-spacing: .3px;
+      cursor:pointer;
+      color: #0B1024;
+      background: linear-gradient(90deg, rgba(251,113,133,1), rgba(251,191,36,1));
+      box-shadow: 0 18px 50px rgba(251,113,133,.18);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      transition: transform .08s ease, filter .12s ease;
+    }
+    .bigbtn:active{transform:scale(.99)}
+    .bigbtn:hover{filter:saturate(1.1)}
+
+    .btn{
+      height: 42px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight: 800;
+      letter-spacing: .2px;
+      transition: transform .08s ease, background .12s ease;
+    }
+    .btn:active{transform:scale(.98)}
+    .btn.primary{
+      border: 0;
+      background: linear-gradient(90deg, rgba(124,92,255,.92), rgba(34,211,238,.82));
+      color: #0B1024;
+    }
+    .btn.danger{
+      border: 1px solid rgba(251,113,133,.35);
+      background: rgba(251,113,133,.10);
+      color: var(--text);
+    }
+    .btn.small{
+      height: 36px;
+      padding: 0 12px;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 12.5px;
+    }
+
+    .section{
+      margin-top: 14px;
+    }
+    .split{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    /* Calendar */
+    .calHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .calHeader .month{
+      font-weight: 900;
+      letter-spacing: .3px;
+    }
+    .calGrid{
+      display:grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+    }
+    .dow{
+      font-size: 11px;
+      color: var(--muted2);
+      text-align:center;
+      margin-bottom: 6px;
+      letter-spacing:.25px;
+    }
+    .day{
+      position:relative;
+      height: 52px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      cursor:pointer;
+      overflow:hidden;
+      display:flex;
+      align-items:flex-start;
+      justify-content:flex-start;
+      padding: 10px 10px;
+      transition: transform .08s ease, background .12s ease, border-color .12s ease;
+    }
+    .day:active{transform:scale(.98)}
+    .day:hover{background: rgba(255,255,255,.06)}
+    .day .n{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+    }
+    .day.muted{opacity:.45}
+    .day.selected{
+      border-color: rgba(124,92,255,.55);
+      background: rgba(124,92,255,.16);
+      box-shadow: 0 10px 30px rgba(124,92,255,.15);
+    }
+    .pill{
+      position:absolute;
+      bottom:8px; right:8px;
+      height: 18px;
+      padding: 0 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color: var(--muted);
+    }
+    .dot{
+      width:7px;height:7px;border-radius:50%;
+      background: rgba(255,255,255,.35);
+    }
+    .dot.good{background: var(--good)}
+    .dot.warn{background: var(--warn)}
+    .dot.bad{background: var(--bad)}
+
+    /* Day panel */
+    .dayPanel{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .dayTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .dayTop .date{
+      font-weight: 1000;
+      letter-spacing: .3px;
+    }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .checklist{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+    .item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .item .left{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width: 0;
+    }
+    .item .left b{
+      font-size: 13px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      letter-spacing:.15px;
+    }
+    .item .left span{
+      font-size: 12px;
+      color: var(--muted2);
+      line-height:1.35;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .toggle{
+      width: 48px;
+      height: 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.18);
+      position:relative;
+      cursor:pointer;
+      flex: 0 0 auto;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .toggle::after{
+      content:"";
+      position:absolute;
+      top: 3px;
+      left: 3px;
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.85);
+      box-shadow: 0 6px 18px rgba(0,0,0,.25);
+      transition: transform .12s ease;
+    }
+    .toggle.on{
+      background: rgba(52,211,153,.22);
+      border-color: rgba(52,211,153,.35);
+    }
+    .toggle.on::after{transform: translateX(20px)}
+
+    textarea{
+      width: 100%;
+      min-height: 110px;
+      resize: vertical;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      color: var(--text);
+      padding: 12px 12px;
+      outline: none;
+      line-height: 1.45;
+    }
+    textarea::placeholder{color: rgba(234,240,255,.38)}
+    .mono{font-family: var(--mono)}
+    .mini{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+
+    /* To-Do */
+    .todoAdd{
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    input[type="text"]{
+      width: 100%;
+      height: 42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.18);
+      color: var(--text);
+      padding: 0 12px;
+      outline:none;
+    }
+    input[type="text"]::placeholder{color: rgba(234,240,255,.38)}
+    .todoList{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top: 10px;
+    }
+    .todo{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
+    .todo .t{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width: 0;
+    }
+    .todo .t b{font-size: 13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .todo .t span{font-size: 12px;color: var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .todo .actions{display:flex;gap:8px;align-items:center}
+
+    /* Modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 18px;
+      z-index: 50;
+    }
+    .overlay.open{display:flex}
+    .modal{
+      width:min(760px, 100%);
+      border-radius: 26px;
+      border: 1px solid rgba(255,255,255,.14);
+      background:
+        radial-gradient(900px 600px at 10% 0%, rgba(251,113,133,.12), transparent 60%),
+        radial-gradient(900px 600px at 90% 0%, rgba(124,92,255,.16), transparent 60%),
+        rgba(10,14,30,.92);
+      box-shadow: 0 40px 120px rgba(0,0,0,.55);
+      padding: 18px;
+    }
+    .modalTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom: 10px;
+    }
+    .modalTop h3{
+      margin:0;
+      font-size: 16px;
+      letter-spacing: .2px;
+    }
+    .close{
+      width: 42px;height:42px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      cursor:pointer;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .steps{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top: 10px;
+    }
+    .step{
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      padding: 12px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .num{
+      width: 28px;
+      height: 28px;
+      border-radius: 12px;
+      background: rgba(124,92,255,.20);
+      border: 1px solid rgba(124,92,255,.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight: 900;
+      color: var(--text);
+      flex: 0 0 auto;
+    }
+    .step b{display:block;font-size: 13px;margin-bottom: 4px}
+    .step p{margin:0;font-size:12.5px;color: var(--muted);line-height:1.45}
+    .timer{
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.18);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .time{
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: .8px;
+    }
+    .note{
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height:1.4;
+    }
+    .footerHint{
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted2);
+      line-height:1.4;
+    }
+
+    /* Toast */
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(10,14,30,.92);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 12px 14px;
+      border-radius: 999px;
+      box-shadow: 0 18px 70px rgba(0,0,0,.4);
+      color: var(--text);
+      display:none;
+      gap:10px;
+      align-items:center;
+      z-index: 60;
+      font-size: 12.5px;
+      white-space:nowrap;
+    }
+    .toast.show{display:flex}
+    .toast .b{font-weight:900}
+    .kbd{
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <h1 id="appTitle">Protocol — Close the Ramp</h1>
+          <p id="appSubtitle">Offline • Private • Streak + Emergency Evacuation</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="chip" id="langToggle" role="button" aria-label="Toggle language">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 5h7M7 5v2c0 5-3 8-3 8M4 15h7M14 19l4-10 4 10M16 15h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b id="langLabel">EN</b>
+          <span id="langHint">Switch</span>
+        </div>
+
+        <div class="chip" id="exportBtn" role="button" aria-label="Export">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3v10m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b id="exportLabel">Export</b>
+          <span class="kbd">JSON</span>
+        </div>
+
+        <label class="chip" for="importFile" style="cursor:pointer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 21V11m0 0l-4 4m4-4l4 4M5 3h14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b id="importLabel">Import</b>
+          <span class="kbd">JSON</span>
+        </label>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+
+        <div class="chip" id="resetBtn" role="button" aria-label="Reset all data">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M8 6V4h8v2M7 6l1 16h8l1-16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <b id="resetLabel">Reset</b>
+          <span id="resetHint">Careful</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="card">
+        <h2>
+          <span id="overviewTitle">30-Day Mission</span>
+          <span class="badge" id="privacyBadge">Local only • no server</span>
+        </h2>
+        <p class="sub" id="overviewSub">
+          Two rules + daily walk. If negotiation starts → evacuate immediately. Track streak, days, and emergencies.
+        </p>
+
+        <div class="row">
+          <div class="stat">
+            <div class="k" id="streakK">Current streak</div>
+            <div class="v"><span id="streakV">0</span> <small id="daysWord">days</small></div>
+            <div class="bar" title="Progress to goal">
+              <div id="goalBar"></div>
+            </div>
+            <div class="k" style="margin-top:10px" id="goalK">Goal</div>
+            <div class="v"><span id="goalV">30</span> <small id="daysWord2">days</small></div>
+          </div>
+
+          <div class="stat">
+            <div class="k" id="monthK">This month</div>
+            <div class="v"><span id="monthV">0</span> <small id="successWord">success</small></div>
+            <div class="k" style="margin-top:10px" id="emK">Emergencies logged</div>
+            <div class="v"><span id="emV">0</span> <small id="eventsWord">events</small></div>
+          </div>
+
+          <div class="stat">
+            <div class="k" id="todayK">Today</div>
+            <div class="v"><span id="todayStatus">—</span></div>
+            <div class="k" style="margin-top:10px" id="ruleK">Rules</div>
+            <div class="v"><span id="ruleStatus">—</span></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <button class="bigbtn" id="emergencyBtn">
+            <span id="emBtnText">EMERGENCY — Evacuate</span>
+          </button>
+          <p class="sub" style="margin-top:10px" id="emBtnSub">
+            One tap opens the step-by-step protocol + 30-minute timer. It also logs the event for today.
+          </p>
+        </div>
+
+        <div class="section card" style="padding:16px;border-radius:22px;background:rgba(255,255,255,.05)">
+          <h2 style="margin-bottom:6px">
+            <span id="rulesTitle">Core Rules (No gray zone)</span>
+            <span class="badge mono" id="mantraBadge">Negotiation = Evacuation</span>
+          </h2>
+          <p class="sub" style="margin-top:0" id="rulesSub">
+            Your brain is a problem solver. Don’t fight inside the house — change the environment.
+          </p>
+          <div class="checklist" id="coreChecklistReadonly"></div>
+        </div>
+
+        <div class="section">
+          <h2><span id="todoTitle">Daily To-Do</span><span class="badge" id="todoHint">Saved on device</span></h2>
+          <p class="sub" id="todoSub">Add your own daily items. Mark them for the selected day.</p>
+
+          <div class="todoAdd">
+            <input id="todoInput" type="text" placeholder="Add a daily item…" />
+            <button class="btn primary" id="todoAddBtn">Add</button>
+          </div>
+          <div class="todoList" id="todoList"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="card dayPanel">
+        <div class="calHeader">
+          <button class="btn small" id="prevMonth">←</button>
+          <div class="month" id="monthLabel">—</div>
+          <button class="btn small" id="nextMonth">→</button>
+        </div>
+
+        <div class="calGrid" id="dowRow"></div>
+        <div class="calGrid" id="calGrid"></div>
+
+        <div class="section card" style="padding:16px;border-radius:22px;background:rgba(255,255,255,.05)">
+          <div class="dayTop">
+            <div>
+              <div class="date" id="selectedDateLabel">—</div>
+              <div class="sub" style="margin:4px 0 0" id="selectedDateSub">Select a day to edit your checklist and notes.</div>
+            </div>
+            <div class="badge" id="selectedBadge">—</div>
+          </div>
+
+          <div class="checklist" id="dayChecklist"></div>
+
+          <div class="mini" style="margin-top:10px">
+            <button class="btn small" id="markAllBtn">Mark all ✓</button>
+            <button class="btn small" id="clearDayBtn">Clear day</button>
+            <button class="btn small danger" id="logEmergencyBtn">Log emergency</button>
+          </div>
+
+          <div class="section">
+            <h2 style="margin: 10px 0 8px"><span id="notesTitle">Notes / Reflection</span><span class="badge mono" id="notesHint">saved</span></h2>
+            <textarea id="notes" placeholder="What triggered you? How did you respond? What worked today?"></textarea>
+          </div>
+
+          <div class="footerHint" id="footerHint">
+            Tip: If you catch yourself negotiating (“hmm, what if…”) — that’s already the alarm. Evacuate.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EMERGENCY MODAL -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="emTitle">
+      <div class="modalTop">
+        <div>
+          <h3 id="emTitle">Emergency Evacuation Protocol</h3>
+          <div class="sub" style="margin:6px 0 0" id="emSub">
+            Don’t negotiate inside the house. Cut access, change context, let the wave pass.
+          </div>
+        </div>
+        <button class="close" id="closeModal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="steps" id="steps"></div>
+
+      <div class="timer">
+        <div>
+          <div class="k" id="timerK">Timer</div>
+          <div class="time" id="timerValue">30:00</div>
+          <div class="k" id="timerSub">Recommended: 30 minutes walk (first 3 minutes fast).</div>
+        </div>
+        <div class="row" style="margin:0;gap:10px">
+          <button class="btn primary" id="startTimerBtn">Start</button>
+          <button class="btn" id="pauseTimerBtn">Pause</button>
+          <button class="btn" id="resetTimerBtn">Reset</button>
+        </div>
+      </div>
+
+      <div class="note" id="emNote">
+        This page logs the emergency for today, privately on your device. No shame. Just action + systems.
+      </div>
+
+      <div class="mini" style="margin-top:12px">
+        <button class="btn primary" id="markEmergencyDoneBtn">I’m outside / protocol started ✓</button>
+        <button class="btn" id="closeAfterBtn">Close</button>
+      </div>
+
+      <div class="footerHint" style="margin-top:12px" id="emFooter">
+        If you need extra friction: unplug Wi-Fi when you return, keep lights dim, go straight to wind-down.
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span class="b">Saved</span><span id="toastMsg">—</span></div>
+
+  <script>
+    /***********************
+     * Data Model (local only)
+     ***********************/
+    const LS_KEY = "close_the_ramp_v1";
+    const schemaVersion = 1;
+
+    const todayISO = () => {
+      const d = new Date();
+      const tz = new Date(d.getTime() - d.getTimezoneOffset()*60000);
+      return tz.toISOString().slice(0,10);
+    };
+    const isoToDate = (iso) => {
+      const [y,m,dd] = iso.split("-").map(Number);
+      return new Date(y, m-1, dd);
+    };
+    const dateToISO = (dt) => {
+      const tz = new Date(dt.getTime() - dt.getTimezoneOffset()*60000);
+      return tz.toISOString().slice(0,10);
+    };
+    const addDays = (iso, n) => {
+      const d = isoToDate(iso);
+      d.setDate(d.getDate()+n);
+      return dateToISO(d);
+    };
+    const startOfMonth = (dt) => new Date(dt.getFullYear(), dt.getMonth(), 1);
+    const endOfMonth = (dt) => new Date(dt.getFullYear(), dt.getMonth()+1, 0);
+    const clamp = (x,a,b)=>Math.max(a,Math.min(b,x));
+
+    const defaultState = () => ({
+      schemaVersion,
+      lang: "tr", // start TR because user is TR
+      goalDays: 30,
+      // You can change success criteria here:
+      // requireWalk: include daily walk in success day?
+      requireWalk: true,
+      // daily core checklist items:
+      core: [
+        { id:"noNegotiation", tr:"Pazarlık yok: “hımm / bir bakayım” başladı mı → tahliye (evacuation).", en:"No negotiation: if “hmm / just a peek” starts → evacuate." },
+        { id:"noPhoneBedroom", tr:"Yatak odası internet yok: telefon yatak odasına girmez.", en:"No internet in bedroom: phone does not enter the bedroom." },
+        { id:"dailyWalk", tr:"Günlük yürüyüş (30 dk): sağlık + tefekkür. (Urge gelirse Emergency Walk olur.)", en:"Daily walk (30 min): health + reflection. (If urge hits → Emergency Walk.)" }
+      ],
+      // user custom daily items
+      todos: [
+        { id: cryptoId(), text:"Water + light meal (evening)", tr:"Su + hafif yemek (akşam)", en:"Water + light meal (evening)" }
+      ],
+      // per-day logs
+      days: {
+        // "YYYY-MM-DD": { core:{...}, todos:{todoId:true}, notes:"", emergencies:0 }
+      },
+      // emergency timer state
+      timer: { running:false, remainingSec: 30*60, lastTick: null }
+    });
+
+    function cryptoId(){
+      // small unique id
+      return Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2);
+    }
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return defaultState();
+        const parsed = JSON.parse(raw);
+        if(!parsed || parsed.schemaVersion !== schemaVersion){
+          // attempt migrate minimal
+          const s = defaultState();
+          return Object.assign(s, parsed || {});
+        }
+        return parsed;
+      }catch(e){
+        return defaultState();
+      }
+    }
+
+    function saveState(){
+      localStorage.setItem(LS_KEY, JSON.stringify(state));
+      toast(t("saved"), t("savedHint"));
+      refreshAll();
+    }
+
+    function ensureDay(iso){
+      if(!state.days[iso]){
+        state.days[iso] = {
+          core: { noNegotiation:false, noPhoneBedroom:false, dailyWalk:false },
+          todos: {},
+          notes: "",
+          emergencies: 0
+        };
+      }
+      return state.days[iso];
+    }
+
+    function daySuccess(iso){
+      const d = state.days[iso];
+      if(!d) return false;
+      const okRules = d.core.noNegotiation && d.core.noPhoneBedroom;
+      const okWalk = state.requireWalk ? d.core.dailyWalk : true;
+      return okRules && okWalk;
+    }
+
+    function calcStreak(){
+      // streak up to today: consecutive success days ending today (or last success day)
+      const today = todayISO();
+      let streak = 0;
+      let cursor = today;
+      while(daySuccess(cursor)){
+        streak++;
+        cursor = addDays(cursor, -1);
+      }
+      return streak;
+    }
+
+    function monthStats(){
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth(); // 0-based
+      const start = new Date(y,m,1);
+      const end = new Date(y,m+1,0);
+      let success = 0;
+      let em = 0;
+      for(let d = 1; d <= end.getDate(); d++){
+        const iso = dateToISO(new Date(y,m,d));
+        if(daySuccess(iso)) success++;
+        if(state.days[iso]) em += (state.days[iso].emergencies || 0);
+      }
+      return {success, em};
+    }
+
+    /***********************
+     * i18n
+     ***********************/
+    const dict = {
+      tr: {
+        title:"Protokol — Rampayı Kapat",
+        subtitle:"Offline • Gizli • Streak + Emergency Evacuation",
+        mission:"30 Günlük Görev",
+        privacy:"Sadece cihazında • sunucu yok",
+        missionSub:"İki kural + günlük yürüyüş. Pazarlık başladı mı → anında tahliye. Streak, günler ve emergency kayıtlarını takip et.",
+        currentStreak:"Mevcut streak",
+        days:"gün",
+        goal:"Hedef",
+        thisMonth:"Bu ay",
+        success:"başarılı gün",
+        emergencies:"Emergency sayısı",
+        events:"olay",
+        today:"Bugün",
+        rules:"Kurallar",
+        emergency:"EMERGENCY — Tahliye",
+        emergencySub:"Tek dokunuş: adım adım protokol + 30 dk timer. Bugüne event kaydı ekler.",
+        coreRules:"Çekirdek Kurallar (gri alan yok)",
+        coreSub:"Beynin problem çözücü. Ev içinde savaşma — ortamı değiştir.",
+        todo:"Günlük To-Do",
+        todoHint:"Cihazında saklanır",
+        todoSub:"Kendi günlük maddelerini ekle. Seçili gün için işaretle.",
+        add:"Ekle",
+        addPlaceholder:"Günlük madde ekle…",
+        month:"Ay",
+        selectDay:"Seçili günün checklist ve notlarını düzenle.",
+        markAll:"Hepsini ✓",
+        clearDay:"Günü temizle",
+        logEmergency:"Emergency kaydet",
+        notes:"Notlar / Tefekkür",
+        footer:"İpucu: “hımm / bir bakayım” pazarlığı başladıysa alarm çaldı. Tahliye.",
+        export:"Dışa aktar",
+        import:"İçe aktar",
+        reset:"Sıfırla",
+        careful:"Dikkat",
+        saved:"Kaydedildi",
+        savedHint:"Veriler cihazında.",
+        confirmReset:"Tüm verileri sıfırlamak istediğine emin misin? (Bu geri alınamaz.)",
+        confirmDeleteTodo:"Bu maddeyi silmek istiyor musun?",
+        statusOk:"İyi",
+        statusPartial:"Kısmi",
+        statusNone:"Boş",
+        emTitle:"Emergency Tahliye Protokolü",
+        emSub:"Ev içinde pazarlık yok. Erişimi kes, ortamı değiştir, dalganın geçmesine izin ver.",
+        timer:"Zamanlayıcı",
+        timerSub:"Öneri: 30 dk yürüyüş (ilk 3 dk hızlı).",
+        start:"Başlat",
+        pause:"Durdur",
+        resetBtn:"Sıfırla",
+        emNote:"Bu sayfa bugüne emergency kaydeder (sadece cihazında). Utanç yok: aksiyon + sistem var.",
+        outsideDone:"Dışarı çıktım / protokol başladı ✓",
+        close:"Kapat",
+        emFooter:"Ek sürtünme: eve dönünce Wi-Fi fişini çek, ışıkları kıs, direkt yatış moduna geç.",
+        ruleStatus:"Kural durumu",
+        todayStatus:"Bugün durumu",
+        successDay:"Başarılı gün",
+        notSuccess:"Eksik",
+        // step texts
+        step1b:"Telefonları bırak (lock box / uzağa koy)",
+        step1p:"İki telefonu da erişilmez yap. Amaç %100 engel değil — 10–120 saniye kazanmak.",
+        step2b:"Ayakkabı giy ve kapıdan çık",
+        step2p:"Ev içinde “hacker mode” çalışıyor. Ortam değişince zincir kırılır.",
+        step3b:"30 dk yürüyüş (ilk 3 dk hızlı)",
+        step3p:"Dalgayı kır. Nefes + tempo. Yürürken “Pazarlık = Tahliye” tekrar et.",
+        step4b:"Eve dönünce: Wi-Fi fişi + su/abdest + ışık kıs",
+        step4p:"İkinci dalgayı kapat. İnternet yok. Yatış moduna geç.",
+        step5b:"Kısa not (isteğe bağlı)",
+        step5p:"Tetik neydi? Yalnızlık mı, stres mi? Bir cümle yaz, bitti."
+      },
+      en: {
+        title:"Protocol — Close the Ramp",
+        subtitle:"Offline • Private • Streak + Emergency Evacuation",
+        mission:"30-Day Mission",
+        privacy:"Local only • no server",
+        missionSub:"Two rules + daily walk. If negotiation starts → evacuate immediately. Track streak, days, and emergencies.",
+        currentStreak:"Current streak",
+        days:"days",
+        goal:"Goal",
+        thisMonth:"This month",
+        success:"success",
+        emergencies:"Emergencies logged",
+        events:"events",
+        today:"Today",
+        rules:"Rules",
+        emergency:"EMERGENCY — Evacuate",
+        emergencySub:"One tap opens the step-by-step protocol + 30-minute timer. It also logs the event for today.",
+        coreRules:"Core Rules (No gray zone)",
+        coreSub:"Your brain is a problem solver. Don’t fight inside the house — change the environment.",
+        todo:"Daily To-Do",
+        todoHint:"Saved on device",
+        todoSub:"Add your own daily items. Mark them for the selected day.",
+        add:"Add",
+        addPlaceholder:"Add a daily item…",
+        month:"Month",
+        selectDay:"Select a day to edit your checklist and notes.",
+        markAll:"Mark all ✓",
+        clearDay:"Clear day",
+        logEmergency:"Log emergency",
+        notes:"Notes / Reflection",
+        footer:"Tip: If you catch yourself negotiating (“hmm, what if…”) — that’s already the alarm. Evacuate.",
+        export:"Export",
+        import:"Import",
+        reset:"Reset",
+        careful:"Careful",
+        saved:"Saved",
+        savedHint:"Stored on your device.",
+        confirmReset:"Are you sure you want to reset all data? (This cannot be undone.)",
+        confirmDeleteTodo:"Delete this item?",
+        statusOk:"Good",
+        statusPartial:"Partial",
+        statusNone:"Empty",
+        emTitle:"Emergency Evacuation Protocol",
+        emSub:"Don’t negotiate inside the house. Cut access, change context, let the wave pass.",
+        timer:"Timer",
+        timerSub:"Recommended: 30 minutes walk (first 3 minutes fast).",
+        start:"Start",
+        pause:"Pause",
+        resetBtn:"Reset",
+        emNote:"This logs the emergency for today (locally only). No shame. Just action + systems.",
+        outsideDone:"I’m outside / protocol started ✓",
+        close:"Close",
+        emFooter:"Extra friction: unplug Wi-Fi when you return, dim lights, go straight to wind-down.",
+        ruleStatus:"Rule status",
+        todayStatus:"Today status",
+        successDay:"Success day",
+        notSuccess:"Missing",
+        step1b:"Remove phones (lock box / far away)",
+        step1p:"Make both phones unreachable. Goal isn’t perfection — it’s buying 10–120 seconds.",
+        step2b:"Shoes on, out the door",
+        step2p:"Inside the house your brain can go into ‘hacker mode.’ Context change breaks the chain.",
+        step3b:"30-minute walk (first 3 minutes fast)",
+        step3p:"Break the wave. Breathe + move. Repeat: “Negotiation = Evacuation.”",
+        step4b:"Return: unplug Wi-Fi + water/ablution + dim lights",
+        step4p:"Close the second wave. No internet. Go straight to wind-down.",
+        step5b:"Quick note (optional)",
+        step5p:"What triggered it? Loneliness, stress? One sentence. Done."
+      }
+    };
+
+    function t(key){
+      const lang = state.lang || "en";
+      return (dict[lang] && dict[lang][key]) || (dict.en[key] || key);
+    }
+
+    /***********************
+     * UI refs
+     ***********************/
+    const $ = (id)=>document.getElementById(id);
+
+    const refs = {
+      appTitle: $("appTitle"),
+      appSubtitle: $("appSubtitle"),
+      overviewTitle: $("overviewTitle"),
+      privacyBadge: $("privacyBadge"),
+      overviewSub: $("overviewSub"),
+      streakK: $("streakK"),
+      streakV: $("streakV"),
+      daysWord: $("daysWord"),
+      goalK: $("goalK"),
+      goalV: $("goalV"),
+      daysWord2: $("daysWord2"),
+      monthK: $("monthK"),
+      monthV: $("monthV"),
+      successWord: $("successWord"),
+      emK: $("emK"),
+      emV: $("emV"),
+      eventsWord: $("eventsWord"),
+      todayK: $("todayK"),
+      todayStatus: $("todayStatus"),
+      ruleK: $("ruleK"),
+      ruleStatus: $("ruleStatus"),
+      emBtnText: $("emBtnText"),
+      emBtnSub: $("emBtnSub"),
+      rulesTitle: $("rulesTitle"),
+      rulesSub: $("rulesSub"),
+      mantraBadge: $("mantraBadge"),
+      coreChecklistReadonly: $("coreChecklistReadonly"),
+      todoTitle: $("todoTitle"),
+      todoHint: $("todoHint"),
+      todoSub: $("todoSub"),
+      todoInput: $("todoInput"),
+      todoAddBtn: $("todoAddBtn"),
+      todoList: $("todoList"),
+      dowRow: $("dowRow"),
+      calGrid: $("calGrid"),
+      monthLabel: $("monthLabel"),
+      selectedDateLabel: $("selectedDateLabel"),
+      selectedDateSub: $("selectedDateSub"),
+      selectedBadge: $("selectedBadge"),
+      dayChecklist: $("dayChecklist"),
+      markAllBtn: $("markAllBtn"),
+      clearDayBtn: $("clearDayBtn"),
+      logEmergencyBtn: $("logEmergencyBtn"),
+      notesTitle: $("notesTitle"),
+      notesHint: $("notesHint"),
+      notes: $("notes"),
+      footerHint: $("footerHint"),
+      goalBar: $("goalBar"),
+
+      langToggle: $("langToggle"),
+      langLabel: $("langLabel"),
+      langHint: $("langHint"),
+      exportBtn: $("exportBtn"),
+      exportLabel: $("exportLabel"),
+      importLabel: $("importLabel"),
+      importFile: $("importFile"),
+      resetBtn: $("resetBtn"),
+      resetLabel: $("resetLabel"),
+      resetHint: $("resetHint"),
+
+      emergencyBtn: $("emergencyBtn"),
+      overlay: $("overlay"),
+      closeModal: $("closeModal"),
+      closeAfterBtn: $("closeAfterBtn"),
+      emTitle: $("emTitle"),
+      emSub: $("emSub"),
+      steps: $("steps"),
+      timerK: $("timerK"),
+      timerValue: $("timerValue"),
+      timerSub: $("timerSub"),
+      startTimerBtn: $("startTimerBtn"),
+      pauseTimerBtn: $("pauseTimerBtn"),
+      resetTimerBtn: $("resetTimerBtn"),
+      emNote: $("emNote"),
+      markEmergencyDoneBtn: $("markEmergencyDoneBtn"),
+      emFooter: $("emFooter"),
+
+      toast: $("toast"),
+      toastMsg: $("toastMsg")
+    };
+
+    /***********************
+     * App State
+     ***********************/
+    let state = loadState();
+    let selectedISO = todayISO();
+    let calCursor = new Date(); // month cursor
+
+    /***********************
+     * Toast
+     ***********************/
+    let toastTimer = null;
+    function toast(title, msg){
+      refs.toast.querySelector(".b").textContent = title;
+      refs.toastMsg.textContent = msg || "";
+      refs.toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(()=>refs.toast.classList.remove("show"), 1200);
+    }
+
+    /***********************
+     * Render helpers
+     ***********************/
+    function setText(){
+      refs.appTitle.textContent = t("title");
+      refs.appSubtitle.textContent = t("subtitle");
+      refs.overviewTitle.textContent = t("mission");
+      refs.privacyBadge.textContent = t("privacy");
+      refs.overviewSub.textContent = t("missionSub");
+
+      refs.streakK.textContent = t("currentStreak");
+      refs.daysWord.textContent = t("days");
+      refs.goalK.textContent = t("goal");
+      refs.goalV.textContent = String(state.goalDays);
+      refs.daysWord2.textContent = t("days");
+
+      refs.monthK.textContent = t("thisMonth");
+      refs.successWord.textContent = t("success");
+      refs.emK.textContent = t("emergencies");
+      refs.eventsWord.textContent = t("events");
+
+      refs.todayK.textContent = t("today");
+      refs.ruleK.textContent = t("rules");
+
+      refs.emBtnText.textContent = t("emergency");
+      refs.emBtnSub.textContent = t("emergencySub");
+
+      refs.rulesTitle.textContent = t("coreRules");
+      refs.rulesSub.textContent = t("coreSub");
+      refs.mantraBadge.textContent = (state.lang==="tr" ? "Pazarlık = Tahliye" : "Negotiation = Evacuation");
+
+      refs.todoTitle.textContent = t("todo");
+      refs.todoHint.textContent = t("todoHint");
+      refs.todoSub.textContent = t("todoSub");
+      refs.todoAddBtn.textContent = t("add");
+      refs.todoInput.placeholder = t("addPlaceholder");
+
+      refs.selectedDateSub.textContent = t("selectDay");
+      refs.markAllBtn.textContent = t("markAll");
+      refs.clearDayBtn.textContent = t("clearDay");
+      refs.logEmergencyBtn.textContent = t("logEmergency");
+      refs.notesTitle.textContent = t("notes");
+      refs.footerHint.textContent = t("footer");
+
+      refs.exportLabel.textContent = t("export");
+      refs.importLabel.textContent = t("import");
+      refs.resetLabel.textContent = t("reset");
+      refs.resetHint.textContent = t("careful");
+
+      refs.emTitle.textContent = t("emTitle");
+      refs.emSub.textContent = t("emSub");
+      refs.timerK.textContent = t("timer");
+      refs.timerSub.textContent = t("timerSub");
+      refs.startTimerBtn.textContent = t("start");
+      refs.pauseTimerBtn.textContent = t("pause");
+      refs.resetTimerBtn.textContent = t("resetBtn");
+      refs.emNote.textContent = t("emNote");
+      refs.markEmergencyDoneBtn.textContent = t("outsideDone");
+      refs.closeAfterBtn.textContent = t("close");
+      refs.emFooter.textContent = t("emFooter");
+
+      refs.langLabel.textContent = (state.lang==="tr" ? "TR" : "EN");
+      refs.langHint.textContent = (state.lang==="tr" ? "Değiştir" : "Switch");
+    }
+
+    function coreText(item){
+      if(state.lang==="tr"){
+        return item.tr || item.text || item.en;
+      }
+      return item.en || item.text || item.tr;
+    }
+
+    function renderCoreReadonly(){
+      refs.coreChecklistReadonly.innerHTML = "";
+      // show 3 readonly items
+      state.core.forEach((c)=>{
+        const div = document.createElement("div");
+        div.className = "item";
+        const left = document.createElement("div");
+        left.className = "left";
+        const b = document.createElement("b");
+        b.textContent = coreText(c);
+        const s = document.createElement("span");
+        s.textContent = (c.id==="noNegotiation")
+          ? (state.lang==="tr" ? "Urge değil — pazarlık tehlike sinyali." : "Not the urge — negotiation is the danger signal.")
+          : (c.id==="noPhoneBedroom")
+          ? (state.lang==="tr" ? "Yatak odası sadece uyku/dinlenme." : "Bedroom is for sleep/rest only.")
+          : (state.lang==="tr" ? "Sağlık + tefekkür + acil durumda kaçış." : "Health + reflection + emergency escape.");
+        left.appendChild(b); left.appendChild(s);
+
+        const tag = document.createElement("span");
+        tag.className = "badge";
+        tag.textContent = (c.id==="noNegotiation") ? (state.lang==="tr" ? "Kural #1" : "Rule #1")
+          : (c.id==="noPhoneBedroom") ? (state.lang==="tr" ? "Kural #2" : "Rule #2")
+          : (state.lang==="tr" ? "Günlük" : "Daily");
+        div.appendChild(left);
+        div.appendChild(tag);
+        refs.coreChecklistReadonly.appendChild(div);
+      });
+    }
+
+    function renderDayChecklist(){
+      const day = ensureDay(selectedISO);
+      refs.dayChecklist.innerHTML = "";
+
+      // core toggles
+      const coreKeys = ["noNegotiation","noPhoneBedroom","dailyWalk"];
+      const labels = {
+        noNegotiation: state.core.find(x=>x.id==="noNegotiation"),
+        noPhoneBedroom: state.core.find(x=>x.id==="noPhoneBedroom"),
+        dailyWalk: state.core.find(x=>x.id==="dailyWalk")
+      };
+
+      coreKeys.forEach((key)=>{
+        const item = document.createElement("div");
+        item.className = "item";
+        const left = document.createElement("div");
+        left.className = "left";
+        const b = document.createElement("b");
+        b.textContent = coreText(labels[key]);
+        const s = document.createElement("span");
+        if(key==="noNegotiation"){
+          s.textContent = state.lang==="tr" ? "Pazarlık başladıysa tahliye yaptın mı?" : "Did you evacuate when negotiation started?";
+        } else if(key==="noPhoneBedroom"){
+          s.textContent = state.lang==="tr" ? "Telefon yatak odasına girmedi mi?" : "Did the phone stay out of the bedroom?";
+        } else {
+          s.textContent = state.lang==="tr" ? "Bugün 30 dk yürüdün mü?" : "Did you do your 30 min walk today?";
+        }
+        left.appendChild(b); left.appendChild(s);
+
+        const toggle = document.createElement("div");
+        toggle.className = "toggle" + (day.core[key] ? " on" : "");
+        toggle.setAttribute("role","switch");
+        toggle.setAttribute("aria-checked", day.core[key] ? "true" : "false");
+        toggle.addEventListener("click", ()=>{
+          day.core[key] = !day.core[key];
+          saveState();
+        });
+
+        item.appendChild(left);
+        item.appendChild(toggle);
+        refs.dayChecklist.appendChild(item);
+      });
+
+      // custom todos
+      if(state.todos.length){
+        const sep = document.createElement("div");
+        sep.style.marginTop="6px";
+        sep.className="sub";
+        sep.textContent = state.lang==="tr" ? "Ek günlük maddeler:" : "Extra daily items:";
+        refs.dayChecklist.appendChild(sep);
+      }
+
+      state.todos.forEach((todo)=>{
+        const item = document.createElement("div");
+        item.className = "item";
+        const left = document.createElement("div");
+        left.className = "left";
+
+        const b = document.createElement("b");
+        b.textContent = (state.lang==="tr" ? (todo.tr || todo.text || todo.en) : (todo.en || todo.text || todo.tr));
+        const s = document.createElement("span");
+        s.textContent = state.lang==="tr" ? "Seçili gün için işaretle." : "Mark for selected day.";
+        left.appendChild(b); left.appendChild(s);
+
+        const on = !!day.todos[todo.id];
+        const toggle = document.createElement("div");
+        toggle.className = "toggle" + (on ? " on" : "");
+        toggle.setAttribute("role","switch");
+        toggle.setAttribute("aria-checked", on ? "true" : "false");
+        toggle.addEventListener("click", ()=>{
+          day.todos[todo.id] = !day.todos[todo.id];
+          saveState();
+        });
+
+        item.appendChild(left);
+        item.appendChild(toggle);
+        refs.dayChecklist.appendChild(item);
+      });
+    }
+
+    function renderTodoList(){
+      refs.todoList.innerHTML = "";
+      const day = ensureDay(selectedISO);
+
+      if(state.todos.length === 0){
+        const empty = document.createElement("div");
+        empty.className = "sub";
+        empty.textContent = state.lang==="tr" ? "Henüz ek madde yok." : "No extra items yet.";
+        refs.todoList.appendChild(empty);
+        return;
+      }
+
+      state.todos.forEach((todo)=>{
+        const row = document.createElement("div");
+        row.className = "todo";
+
+        const tdiv = document.createElement("div");
+        tdiv.className = "t";
+        const b = document.createElement("b");
+        b.textContent = (state.lang==="tr" ? (todo.tr || todo.text || todo.en) : (todo.en || todo.text || todo.tr));
+        const s = document.createElement("span");
+        s.textContent = state.lang==="tr"
+          ? (day.todos[todo.id] ? "Seçili günde tamamlandı ✓" : "Seçili günde tamamlanmadı")
+          : (day.todos[todo.id] ? "Completed for selected day ✓" : "Not completed for selected day");
+        tdiv.appendChild(b); tdiv.appendChild(s);
+
+        const actions = document.createElement("div");
+        actions.className="actions";
+
+        const markBtn = document.createElement("button");
+        markBtn.className="btn small";
+        markBtn.textContent = day.todos[todo.id] ? "✓" : "+";
+        markBtn.title = state.lang==="tr" ? "Seçili gün için işaretle" : "Mark for selected day";
+        markBtn.addEventListener("click", ()=>{
+          day.todos[todo.id] = !day.todos[todo.id];
+          saveState();
+        });
+
+        const delBtn = document.createElement("button");
+        delBtn.className="btn small danger";
+        delBtn.textContent = state.lang==="tr" ? "Sil" : "Del";
+        delBtn.addEventListener("click", ()=>{
+          if(confirm(t("confirmDeleteTodo"))){
+            state.todos = state.todos.filter(x=>x.id!==todo.id);
+            // remove from all days
+            for(const k of Object.keys(state.days)){
+              if(state.days[k].todos) delete state.days[k].todos[todo.id];
+            }
+            saveState();
+          }
+        });
+
+        actions.appendChild(markBtn);
+        actions.appendChild(delBtn);
+
+        row.appendChild(tdiv);
+        row.appendChild(actions);
+        refs.todoList.appendChild(row);
+      });
+    }
+
+    function renderSelectedHeader(){
+      refs.selectedDateLabel.textContent = selectedISO;
+      const day = ensureDay(selectedISO);
+      const em = day.emergencies || 0;
+
+      const success = daySuccess(selectedISO);
+      const rulesOk = day.core.noNegotiation && day.core.noPhoneBedroom;
+
+      refs.selectedBadge.textContent =
+        (success ? t("successDay") : t("notSuccess")) + " • " +
+        (state.lang==="tr" ? `Emergency: ${em}` : `Emergency: ${em}`);
+
+      // fill notes
+      refs.notes.value = day.notes || "";
+
+      // today cards
+      const isToday = selectedISO === todayISO();
+      if(isToday){
+        refs.todayStatus.textContent = success ? t("statusOk") : (rulesOk ? t("statusPartial") : t("statusNone"));
+        refs.ruleStatus.textContent = rulesOk ? t("statusOk") : t("statusNone");
+      }
+    }
+
+    function renderOverview(){
+      const streak = calcStreak();
+      refs.streakV.textContent = String(streak);
+
+      const {success, em} = monthStats();
+      refs.monthV.textContent = String(success);
+      refs.emV.textContent = String(em);
+
+      // goal progress bar (streak / goal)
+      const pct = clamp((streak / state.goalDays) * 100, 0, 100);
+      refs.goalBar.style.width = pct.toFixed(0) + "%";
+
+      // Today status summary
+      const iso = todayISO();
+      ensureDay(iso);
+      const rulesOk = state.days[iso].core.noNegotiation && state.days[iso].core.noPhoneBedroom;
+      const ok = daySuccess(iso);
+
+      refs.todayStatus.textContent = ok ? t("statusOk") : (rulesOk ? t("statusPartial") : t("statusNone"));
+      refs.ruleStatus.textContent = rulesOk ? t("statusOk") : t("statusNone");
+    }
+
+    function renderDOW(){
+      refs.dowRow.innerHTML = "";
+      const namesTR = ["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
+      const namesEN = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+      const list = (state.lang==="tr" ? namesTR : namesEN);
+      for(const n of list){
+        const div = document.createElement("div");
+        div.className = "dow";
+        div.textContent = n;
+        refs.dowRow.appendChild(div);
+      }
+    }
+
+    function statusDot(iso){
+      const d = state.days[iso];
+      if(!d) return "dot";
+      const success = daySuccess(iso);
+      const rulesOk = d.core.noNegotiation && d.core.noPhoneBedroom;
+      if(success) return "dot good";
+      if(rulesOk || d.emergencies>0) return "dot warn";
+      return "dot bad";
+    }
+
+    function renderCalendar(){
+      // month label
+      const monthName = calCursor.toLocaleString(state.lang==="tr" ? "tr-TR" : "en-US", { month:"long", year:"numeric" });
+      refs.monthLabel.textContent = monthName;
+
+      refs.calGrid.innerHTML = "";
+      const start = startOfMonth(calCursor);
+      const end = endOfMonth(calCursor);
+
+      // Make Monday=0 index
+      const startDow = (start.getDay()+6)%7;
+      const totalDays = end.getDate();
+
+      // leading cells
+      for(let i=0;i<startDow;i++){
+        const div = document.createElement("div");
+        div.className = "day muted";
+        div.style.pointerEvents="none";
+        refs.calGrid.appendChild(div);
+      }
+
+      for(let d=1; d<=totalDays; d++){
+        const dt = new Date(calCursor.getFullYear(), calCursor.getMonth(), d);
+        const iso = dateToISO(dt);
+
+        const cell = document.createElement("div");
+        cell.className = "day" + (iso===selectedISO ? " selected" : "");
+        if(iso.slice(0,7) !== selectedISO.slice(0,7) && iso===selectedISO){
+          // no-op
+        }
+        const num = document.createElement("div");
+        num.className = "n";
+        num.textContent = String(d);
+        cell.appendChild(num);
+
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        const dot = document.createElement("span");
+        dot.className = statusDot(iso);
+        const em = state.days[iso]?.emergencies || 0;
+        const txt = document.createElement("span");
+        txt.textContent = em>0 ? ("+"+em) : (daySuccess(iso) ? "✓" : "");
+        pill.appendChild(dot);
+        pill.appendChild(txt);
+        cell.appendChild(pill);
+
+        cell.addEventListener("click", ()=>{
+          selectedISO = iso;
+          ensureDay(selectedISO);
+          refreshAll();
+        });
+
+        refs.calGrid.appendChild(cell);
+      }
+    }
+
+    function renderEmergencySteps(){
+      refs.steps.innerHTML = "";
+      const steps = [
+        {b: t("step1b"), p: t("step1p")},
+        {b: t("step2b"), p: t("step2p")},
+        {b: t("step3b"), p: t("step3p")},
+        {b: t("step4b"), p: t("step4p")},
+        {b: t("step5b"), p: t("step5p")}
+      ];
+
+      steps.forEach((s, i)=>{
+        const row = document.createElement("div");
+        row.className="step";
+        const num = document.createElement("div");
+        num.className="num";
+        num.textContent = String(i+1);
+        const txt = document.createElement("div");
+        const b = document.createElement("b"); b.textContent = s.b;
+        const p = document.createElement("p"); p.textContent = s.p;
+        txt.appendChild(b); txt.appendChild(p);
+        row.appendChild(num);
+        row.appendChild(txt);
+        refs.steps.appendChild(row);
+      });
+    }
+
+    function refreshAll(){
+      setText();
+      renderCoreReadonly();
+      renderOverview();
+      renderDOW();
+      renderCalendar();
+      renderSelectedHeader();
+      renderDayChecklist();
+      renderTodoList();
+      syncTimerUI();
+    }
+
+    /***********************
+     * Actions
+     ***********************/
+    refs.langToggle.addEventListener("click", ()=>{
+      state.lang = (state.lang === "tr") ? "en" : "tr";
+      saveState();
+    });
+
+    refs.todoAddBtn.addEventListener("click", ()=>{
+      const v = refs.todoInput.value.trim();
+      if(!v) return;
+      state.todos.push({ id: cryptoId(), text: v, tr: v, en: v });
+      refs.todoInput.value = "";
+      saveState();
+    });
+    refs.todoInput.addEventListener("keydown", (e)=>{
+      if(e.key==="Enter"){
+        e.preventDefault();
+        refs.todoAddBtn.click();
+      }
+    });
+
+    refs.markAllBtn.addEventListener("click", ()=>{
+      const d = ensureDay(selectedISO);
+      d.core.noNegotiation = true;
+      d.core.noPhoneBedroom = true;
+      d.core.dailyWalk = true;
+      // mark all todos
+      state.todos.forEach(td => d.todos[td.id]=true);
+      saveState();
+    });
+
+    refs.clearDayBtn.addEventListener("click", ()=>{
+      state.days[selectedISO] = {
+        core: { noNegotiation:false, noPhoneBedroom:false, dailyWalk:false },
+        todos: {},
+        notes: "",
+        emergencies: 0
+      };
+      saveState();
+    });
+
+    function logEmergency(){
+      const d = ensureDay(selectedISO);
+      d.emergencies = (d.emergencies || 0) + 1;
+      // Optional: auto-set rule #1 true because evacuation is being used
+      // But we keep it user-driven; no automatic assumptions.
+      saveState();
+    }
+
+    refs.logEmergencyBtn.addEventListener("click", ()=>{
+      logEmergency();
+      toast(t("saved"), state.lang==="tr" ? "Emergency kaydedildi." : "Emergency logged.");
+    });
+
+    refs.notes.addEventListener("input", ()=>{
+      const d = ensureDay(selectedISO);
+      d.notes = refs.notes.value;
+      // debounce save
+      clearTimeout(refs.notes._t);
+      refs.notes._t = setTimeout(()=>saveState(), 350);
+    });
+
+    // calendar nav
+    $("prevMonth").addEventListener("click", ()=>{
+      calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()-1, 1);
+      refreshAll();
+    });
+    $("nextMonth").addEventListener("click", ()=>{
+      calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth()+1, 1);
+      refreshAll();
+    });
+
+    // export/import/reset
+    refs.exportBtn.addEventListener("click", ()=>{
+      const payload = JSON.stringify(state, null, 2);
+      const blob = new Blob([payload], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "close-the-ramp-backup.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    refs.importFile.addEventListener("change", async (e)=>{
+      const file = e.target.files && e.target.files[0];
+      if(!file) return;
+      try{
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        if(!parsed) throw new Error("Bad JSON");
+        // minimal validation
+        state = Object.assign(defaultState(), parsed);
+        if(!state.schemaVersion) state.schemaVersion = schemaVersion;
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        toast(t("saved"), state.lang==="tr" ? "İçe aktarıldı." : "Imported.");
+        refreshAll();
+      }catch(err){
+        alert(state.lang==="tr" ? "Import başarısız: JSON hatalı." : "Import failed: invalid JSON.");
+      }finally{
+        refs.importFile.value = "";
+      }
+    });
+
+    refs.resetBtn.addEventListener("click", ()=>{
+      if(confirm(t("confirmReset"))){
+        localStorage.removeItem(LS_KEY);
+        state = defaultState();
+        selectedISO = todayISO();
+        calCursor = new Date();
+        refreshAll();
+      }
+    });
+
+    /***********************
+     * Emergency Modal + Timer
+     ***********************/
+    function openModal(){
+      refs.overlay.classList.add("open");
+      refs.overlay.setAttribute("aria-hidden","false");
+      // log emergency immediately? user asked emergency button; we will log on open
+      selectedISO = todayISO(); // emergency is for today
+      ensureDay(selectedISO);
+      logEmergency();
+      renderEmergencySteps();
+      refreshAll();
+    }
+    function closeModal(){
+      refs.overlay.classList.remove("open");
+      refs.overlay.setAttribute("aria-hidden","true");
+    }
+
+    refs.emergencyBtn.addEventListener("click", openModal);
+    refs.closeModal.addEventListener("click", closeModal);
+    refs.closeAfterBtn.addEventListener("click", closeModal);
+    refs.overlay.addEventListener("click", (e)=>{
+      if(e.target === refs.overlay) closeModal();
+    });
+
+    function syncTimerUI(){
+      // tick if running
+      const mm = Math.floor(state.timer.remainingSec/60);
+      const ss = state.timer.remainingSec%60;
+      refs.timerValue.textContent = String(mm).padStart(2,"0")+":"+String(ss).padStart(2,"0");
+      refs.pauseTimerBtn.textContent = state.timer.running ? t("pause") : (state.lang==="tr" ? "Devam" : "Resume");
+    }
+
+    function timerTick(){
+      if(!state.timer.running) return;
+      const now = Date.now();
+      if(state.timer.lastTick == null) state.timer.lastTick = now;
+      const diff = Math.floor((now - state.timer.lastTick)/1000);
+      if(diff > 0){
+        state.timer.remainingSec = Math.max(0, state.timer.remainingSec - diff);
+        state.timer.lastTick = now;
+        localStorage.setItem(LS_KEY, JSON.stringify(state));
+        syncTimerUI();
+        if(state.timer.remainingSec === 0){
+          state.timer.running = false;
+          state.timer.lastTick = null;
+          localStorage.setItem(LS_KEY, JSON.stringify(state));
+          syncTimerUI();
+          toast(state.lang==="tr" ? "Bitti" : "Done", state.lang==="tr" ? "30 dk tamamlandı." : "30 minutes completed.");
+          // gentle vibration if available
+          if(navigator.vibrate) navigator.vibrate([120,70,120]);
+        }
+      }
+    }
+    setInterval(timerTick, 500);
+
+    refs.startTimerBtn.addEventListener("click", ()=>{
+      state.timer.running = true;
+      state.timer.lastTick = Date.now();
+      saveState();
+    });
+
+    refs.pauseTimerBtn.addEventListener("click", ()=>{
+      if(state.timer.running){
+        state.timer.running = false;
+        state.timer.lastTick = null;
+      }else{
+        state.timer.running = true;
+        state.timer.lastTick = Date.now();
+      }
+      saveState();
+    });
+
+    refs.resetTimerBtn.addEventListener("click", ()=>{
+      state.timer.running = false;
+      state.timer.lastTick = null;
+      state.timer.remainingSec = 30*60;
+      saveState();
+    });
+
+    refs.markEmergencyDoneBtn.addEventListener("click", ()=>{
+      // Mark rule #1 true for today (they executed evacuation)
+      const d = ensureDay(todayISO());
+      d.core.noNegotiation = true;
+      saveState();
+      toast(t("saved"), state.lang==="tr" ? "Kural #1 işaretlendi." : "Rule #1 marked.");
+    });
+
+    /***********************
+     * Boot
+     ***********************/
+    // initialize selected day & calendar to current month
+    selectedISO = todayISO();
+    ensureDay(selectedISO);
+    calCursor = isoToDate(selectedISO);
+
+    // improve default todo text per language on first load
+    // (optional: keep as-is)
+
+    // Render steps once
+    renderEmergencySteps();
+    refreshAll();
+
+    // keyboard shortcut: E to open emergency (desktop)
+    window.addEventListener("keydown", (e)=>{
+      if(e.key.toLowerCase() === "e" && (e.ctrlKey || e.metaKey)){
+        openModal();
+      }
+      if(e.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
