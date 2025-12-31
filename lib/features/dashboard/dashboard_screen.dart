@@ -1,20 +1,40 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/i18n/app_localizations.dart';
+import '../../core/theme/design_tokens.dart';
+import '../../core/utils/date_utils.dart';
 import '../../state/app_controller.dart';
 import '../../data/models/app_state.dart';
+import '../../widgets/animated_toggle_tile.dart';
+import '../../widgets/buttons.dart';
 import '../../widgets/chips.dart';
 import '../../widgets/glass_card.dart';
-import '../emergency/emergency_modal.dart';
+import '../../widgets/section_header.dart';
+import '../emergency/emergency_screen.dart';
 
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  int _urgeSeconds = 0;
+  Timer? _urgeTimer;
+
+  @override
+  void dispose() {
+    _urgeTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final appState = ref.watch(appControllerProvider);
     final t = AppLocalizations.of(context);
     final today = DateTime.now();
@@ -24,15 +44,25 @@ class DashboardScreen extends ConsumerWidget {
     final emergencyMonth = appState.emergenciesThisMonth(today);
     final todayEntry = appState.dayFor(today);
 
+    final streakBadge = StatusChip(
+      label: '${t.streak}: $streak',
+      color: Colors.tealAccent,
+      icon: Icons.local_fire_department,
+    );
+
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(t.appTitle, style: Theme.of(context).textTheme.headlineSmall),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(t.appTitle, style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 4),
+              Text(t.todayStatus, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+            ]),
             IconButton(
-              onPressed: () => _toggleLanguage(ref, appState.lang),
+              onPressed: () => _toggleLanguage(appState.lang),
               icon: const Icon(Icons.language),
               tooltip: t.languageToggle,
             )
@@ -43,32 +73,55 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(t.todayStatus, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
+              SectionHeader(title: t.progress),
+              const SizedBox(height: 12),
+              Row(
                 children: [
-                  StatusChip(
-                    label: _statusLabel(status, t),
-                    color: _statusColor(status),
-                    icon: Icons.brightness_1,
-                  ),
-                  StatusChip(label: '${t.streak}: $streak', color: Colors.tealAccent, icon: Icons.local_fire_department),
-                  StatusChip(label: '${t.goal}: ${appState.goalDays}', color: Colors.orangeAccent, icon: Icons.flag),
-                  if (todayEntry.emergencies > 0)
-                    StatusChip(
-                      label: '${t.todayEmergency}: ${todayEntry.emergencies}',
-                      color: Colors.amberAccent,
-                      icon: Icons.warning_amber_rounded,
+                  Expanded(
+                    child: TweenAnimationBuilder<double>(
+                      duration: DesignTokens.slow,
+                      tween: Tween(begin: 0, end: streak.toDouble()),
+                      builder: (_, value, __) => Text(value.toStringAsFixed(0),
+                          style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold)),
                     ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      streakBadge,
+                      const SizedBox(height: 8),
+                      StatusChip(label: '${t.goal}: ${appState.goalDays}', color: Colors.orangeAccent, icon: Icons.flag),
+                    ],
+                  )
                 ],
               ),
-              const SizedBox(height: 12),
-              LinearProgressIndicator(
-                value: (appState.streak(today) / appState.goalDays).clamp(0, 1).toDouble(),
-                minHeight: 10,
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 8),
+              TweenAnimationBuilder<double>(
+                duration: DesignTokens.medium,
+                tween: Tween(begin: 0, end: (streak / appState.goalDays).clamp(0, 1).toDouble()),
+                builder: (_, value, __) => LinearProgressIndicator(value: value, minHeight: 10, borderRadius: BorderRadius.circular(12)),
               ),
+              const SizedBox(height: 8),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                StatusChip(label: _statusLabel(status, t), color: _statusColor(status), icon: Icons.check_circle),
+                if (todayEntry.emergencies > 0)
+                  StatusChip(
+                    label: '${t.todayEmergency}: ${todayEntry.emergencies}',
+                    color: Colors.amberAccent,
+                    icon: Icons.warning_amber_rounded,
+                  ),
+                StatusChip(
+                  label: '${t.protectionScore}: ${appState.protectionScore(today)}%',
+                  color: Colors.lightBlueAccent,
+                  icon: Icons.shield_moon,
+                ),
+                if (appState.inNightRiskWindow && !(todayEntry.noPhoneBedroom && todayEntry.noNegotiation))
+                  StatusChip(
+                    label: t.nightRisk,
+                    color: Colors.purpleAccent,
+                    icon: Icons.nightlight_round,
+                  ),
+              ]),
             ],
           ),
         ),
@@ -80,7 +133,7 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(t.monthSuccess, style: Theme.of(context).textTheme.bodyLarge),
+                    SectionHeader(title: t.monthSuccess),
                     const SizedBox(height: 4),
                     Text('$successMonth ${t.successDay}', style: Theme.of(context).textTheme.headlineSmall),
                   ],
@@ -93,7 +146,7 @@ class DashboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(t.monthEmergencies, style: Theme.of(context).textTheme.bodyLarge),
+                    SectionHeader(title: t.monthEmergencies),
                     const SizedBox(height: 4),
                     Text('$emergencyMonth', style: Theme.of(context).textTheme.headlineSmall),
                   ],
@@ -107,121 +160,132 @@ class DashboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Core Rules', style: Theme.of(context).textTheme.titleMedium),
+              SectionHeader(title: t.emergency, action: IconButton(onPressed: _openEmergency, icon: const Icon(Icons.open_in_new))),
               const SizedBox(height: 8),
-              _ruleRow(t.rule1, todayEntry.noNegotiation),
-              _ruleRow(t.rule2, todayEntry.noPhoneBedroom),
-              _ruleRow(t.dailyWalk, todayEntry.dailyWalk || !appState.requireWalk, trailing: _walkToggle(ref, appState)),
+              Text(t.emergencyMicrocopy, style: Theme.of(context).textTheme.bodyMedium),
+              const SizedBox(height: 12),
+              PrimaryButton(label: '${t.emergency} — ${t.evacuate}', icon: Icons.warning_amber_rounded, onPressed: _openEmergency),
+              const SizedBox(height: 8),
+              Text(t.supportiveChip, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.greenAccent)),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        GlassCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: Text(t.goalDays)),
-                  SizedBox(
-                    width: 80,
-                    child: TextFormField(
-                      initialValue: appState.goalDays.toString(),
-                      keyboardType: TextInputType.number,
-                      onChanged: (v) {
-                        final value = int.tryParse(v) ?? AppConstants.defaultGoalDays;
-                        ref.read(appControllerProvider.notifier).setGoalDays(value);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                value: appState.requireWalk,
-                title: Text(t.requireWalk),
-                onChanged: (v) => ref.read(appControllerProvider.notifier).toggleRequireWalk(v),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => ref.read(appControllerProvider.notifier).exportState(),
-                    icon: const Icon(Icons.upload_file),
-                    label: Text(t.exportLabel),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => ref.read(appControllerProvider.notifier).importState(),
-                    icon: const Icon(Icons.download),
-                    label: Text(t.importLabel),
-                  ),
-                  TextButton.icon(
-                    onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (ctx) => AlertDialog(
-                              title: Text(t.reset),
-                              content: Text(t.confirmReset),
-                              actions: [
-                                TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text(t.cancel)),
-                                ElevatedButton(onPressed: () => Navigator.of(ctx).pop(true), child: Text(t.confirm)),
-                              ],
-                            ),
-                          ) ??
-                          false;
-                      if (confirmed) {
-                        await ref.read(appControllerProvider.notifier).reset();
-                      }
-                    },
-                    icon: const Icon(Icons.delete_forever),
-                    label: Text(t.reset),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            backgroundColor: Colors.redAccent,
-          ),
-          onPressed: () {
-            ref.read(appControllerProvider.notifier).setSelectedDate(today);
-            ref.read(appControllerProvider.notifier).logEmergency();
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.black87,
-              builder: (_) => const EmergencyModal(),
-            );
-          },
-          icon: const Icon(Icons.warning_amber_rounded),
-          label: Text('${t.emergency} — ${t.evacuate}'),
-        ),
-        const SizedBox(height: 8),
-        if (todayEntry.emergencies > 0)
-          Text(t.supportiveChip, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.greenAccent)),
+        _coreRulesCard(appState, todayEntry),
         const SizedBox(height: 12),
-        if (DateTime.now().hour >= 22 && !(todayEntry.noPhoneBedroom && todayEntry.noNegotiation))
-          GlassCard(
-            child: Row(
-              children: [
-                const Icon(Icons.nightlight_round, color: Colors.amberAccent),
-                const SizedBox(width: 8),
-                Expanded(child: Text(t.gentleReminder)),
-              ],
-            ),
-          ),
+        _preventionCard(t),
+        const SizedBox(height: 12),
+        _milestoneBanner(streak, t),
       ],
     );
   }
 
-  void _toggleLanguage(WidgetRef ref, String current) {
+  Widget _coreRulesCard(AppStateModel appState, DayEntry todayEntry) {
+    final t = AppLocalizations.of(context);
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(title: t.coreRules),
+          const SizedBox(height: 8),
+          _ruleRow(t.rule1, todayEntry.noNegotiation),
+          _ruleRow(t.rule2, todayEntry.noPhoneBedroom),
+          _ruleRow(t.dailyWalk, todayEntry.dailyWalk || !appState.requireWalk, trailing: _walkToggle(appState)),
+          const SizedBox(height: 8),
+          AnimatedToggleTile(
+            title: t.requireWalk,
+            subtitle: t.requireWalkNote,
+            value: appState.requireWalk,
+            onChanged: (v) => ref.read(appControllerProvider.notifier).toggleRequireWalk(v),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _preventionCard(AppLocalizations t) {
+    final surgeValue = _urgeSeconds > 0 ? _urgeSeconds : 90;
+    final progress = 1 - (surgeValue / 90);
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionHeader(title: t.preventionToolkit),
+          const SizedBox(height: 12),
+          Text(t.urgeSurfingTitle, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Text(t.urgeSurfingBody, style: Theme.of(context).textTheme.bodySmall),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(value: progress.clamp(0, 1), minHeight: 8, borderRadius: BorderRadius.circular(12)),
+          const SizedBox(height: 8),
+          PrimaryButton(
+            label: _urgeTimer == null ? t.start90s : '${t.remaining}: ${surgeValue.toString().padLeft(2, '0')}s',
+            icon: Icons.water_drop,
+            onPressed: _startUrgeSurfing,
+            expand: false,
+          ),
+          const SizedBox(height: 12),
+          Text(t.ifThenPlan, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          TextFormField(
+            initialValue: ref.read(appControllerProvider).ifThenPlan,
+            onChanged: (v) => ref.read(appControllerProvider.notifier).updateIfThenPlan(v),
+            decoration: InputDecoration(hintText: t.ifThenPlaceholder),
+          ),
+          const SizedBox(height: 12),
+          Text(t.triggerLogTitle, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 8,
+            children: ['loneliness', 'stress', 'boredom', 'late-night', 'accidental', 'other']
+                .map((trigger) => ChoiceChip(
+                      label: Text(trigger),
+                      selected: false,
+                      onSelected: (_) => ref.read(appControllerProvider.notifier).addTriggerLog(trigger),
+                    ))
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _milestoneBanner(int streak, AppLocalizations t) {
+    const milestones = [3, 7, 14, 30, 60, 90];
+    final reached = milestones.firstWhere((m) => streak >= m, orElse: () => 0);
+    if (reached == 0) return const SizedBox.shrink();
+    return GlassCard(
+      child: Row(
+        children: [
+          const Icon(Icons.emoji_events, color: Colors.amberAccent),
+          const SizedBox(width: 12),
+          Expanded(child: Text('${t.streak} $reached — ${t.milestoneBody}')),
+        ],
+      ),
+    );
+  }
+
+  void _toggleLanguage(String current) {
     final next = current == 'tr' ? 'en' : 'tr';
     ref.read(appControllerProvider.notifier).setLanguage(next);
+  }
+
+  void _startUrgeSurfing() {
+    _urgeTimer?.cancel();
+    setState(() {
+      _urgeSeconds = 90;
+    });
+    _urgeTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() => _urgeSeconds = _urgeSeconds - 1);
+      if (_urgeSeconds <= 0) {
+        timer.cancel();
+      }
+    });
+  }
+
+  void _openEmergency() {
+    ref.read(appControllerProvider.notifier).setSelectedDate(DateTime.now());
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EmergencyScreen()));
   }
 
   String _statusLabel(DayStatus status, AppLocalizations t) {
@@ -251,17 +315,21 @@ class DashboardScreen extends ConsumerWidget {
   Widget _ruleRow(String text, bool done, {Widget? trailing}) {
     return ListTile(
       dense: true,
-      leading: Icon(done ? Icons.check_circle : Icons.radio_button_unchecked, color: done ? Colors.greenAccent : Colors.white70),
+      leading: AnimatedSwitcher(
+        duration: DesignTokens.fast,
+        child: Icon(done ? Icons.check_circle : Icons.radio_button_unchecked,
+            key: ValueKey(done), color: done ? Colors.greenAccent : Colors.white70),
+      ),
       title: Text(text),
       trailing: trailing,
     );
   }
 
-  Widget _walkToggle(WidgetRef ref, AppStateModel appState) {
+  Widget _walkToggle(AppStateModel appState) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(AppLocalizations.of(ref.context).requireWalk),
+        Text(AppLocalizations.of(context).requireWalk),
         Switch(
           value: appState.requireWalk,
           onChanged: (v) => ref.read(appControllerProvider.notifier).toggleRequireWalk(v),

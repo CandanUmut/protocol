@@ -5,6 +5,9 @@ import 'core/i18n/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'features/dashboard/dashboard_screen.dart';
 import 'features/calendar/calendar_screen.dart';
+import 'features/emergency/emergency_screen.dart';
+import 'features/insights/insights_screen.dart';
+import 'features/settings/settings_screen.dart';
 import 'state/app_controller.dart';
 import 'widgets/gradient_background.dart';
 
@@ -42,7 +45,7 @@ class _RootShell extends ConsumerStatefulWidget {
 
 class _RootShellState extends ConsumerState<_RootShell> {
   int _index = 0;
-  final _pages = const [DashboardScreen(), CalendarScreen()];
+  final _pages = const [DashboardScreen(), CalendarScreen(), InsightsScreen(), SettingsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -51,6 +54,10 @@ class _RootShellState extends ConsumerState<_RootShell> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(child: _pages[_index]),
+        floatingActionButton: FloatingActionButton.large(
+          onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const EmergencyScreen())),
+          child: const Icon(Icons.sos),
+        ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: _index,
           onDestinationSelected: (v) => setState(() => _index = v),
@@ -64,6 +71,16 @@ class _RootShellState extends ConsumerState<_RootShell> {
               icon: const Icon(Icons.calendar_month_outlined),
               selectedIcon: const Icon(Icons.calendar_month),
               label: t.calendarTitle,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.insights_outlined),
+              selectedIcon: const Icon(Icons.insights),
+              label: t.insights,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.settings_outlined),
+              selectedIcon: const Icon(Icons.settings),
+              label: t.settings,
             ),
           ],
         ),
