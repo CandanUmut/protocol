@@ -54,6 +54,47 @@ class AppLocalizations {
   String get gentleReminder => _strings['gentle_reminder'] ?? '';
   String get progress => _strings['progress'] ?? '';
   String get requireWalk => _strings['require_walk'] ?? '';
+  String get requireWalkNote => _strings['require_walk_note'] ?? '';
+  String get protectionScore => _strings['protection_score'] ?? '';
+  String get nightRisk => _strings['night_risk'] ?? '';
+  String get coreRules => _strings['core_rules'] ?? '';
+  String get preventionToolkit => _strings['prevention_toolkit'] ?? '';
+  String get urgeSurfingTitle => _strings['urge_surfing_title'] ?? '';
+  String get urgeSurfingBody => _strings['urge_surfing_body'] ?? '';
+  String get start90s => _strings['start_90s'] ?? '';
+  String get remaining => _strings['remaining'] ?? '';
+  String get ifThenPlan => _strings['if_then_plan'] ?? '';
+  String get ifThenPlaceholder => _strings['if_then_placeholder'] ?? '';
+  String get triggerLogTitle => _strings['trigger_log_title'] ?? '';
+  String get milestoneBody => _strings['milestone_body'] ?? '';
+  String get emergencyMicrocopy => _strings['emergency_microcopy'] ?? '';
+  String get emergencyModeTitle => _strings['emergency_mode_title'] ?? '';
+  String get sessionHistory => _strings['session_history'] ?? '';
+  String get emptySessions => _strings['empty_sessions'] ?? '';
+  String get stepsCompleted => _strings['steps_completed'] ?? '';
+  String get minutes => _strings['minutes'] ?? '';
+  String get stepOutside => _strings['step_outside'] ?? '';
+  String get stepStartTimer => _strings['step_start_timer'] ?? '';
+  String get stepCallFriend => _strings['step_call_friend'] ?? '';
+  String get stepWalk => _strings['step_walk'] ?? '';
+  String get stepBreath => _strings['step_breath'] ?? '';
+  String get insights => _strings['insights'] ?? '';
+  String get settings => _strings['settings'] ?? '';
+  String get streakTrend => _strings['streak_trend'] ?? '';
+  String get emergenciesPerWeek => _strings['emergencies_per_week'] ?? '';
+  String get topTriggers => _strings['top_triggers'] ?? '';
+  String get noTriggers => _strings['no_triggers'] ?? '';
+  String get language => _strings['language'] ?? '';
+  String get riskWindow => _strings['risk_window'] ?? '';
+  String get riskWindowNote => _strings['risk_window_note'] ?? '';
+  String get notifications => _strings['notifications'] ?? '';
+  String get notificationsBody => _strings['notifications_body'] ?? '';
+  String get sounds => _strings['sounds'] ?? '';
+  String get soundsBody => _strings['sounds_body'] ?? '';
+  String get haptics => _strings['haptics'] ?? '';
+  String get hapticsBody => _strings['haptics_body'] ?? '';
+  String get dataControl => _strings['data_control'] ?? '';
+  String get privacyInfo => _strings['privacy_info'] ?? '';
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

@@ -28,13 +28,15 @@ class TimerService {
     return state.copyWith(remainingSeconds: seconds, lastUpdatedEpochMillis: DateTime.now().millisecondsSinceEpoch);
   }
 
-  EmergencyTimerState start(EmergencyTimerState state) {
+  EmergencyTimerState start(EmergencyTimerState state, {bool notificationsEnabled = true}) {
     final endAt = DateTime.now().millisecondsSinceEpoch + state.remainingSeconds * 1000;
-    NotificationService.instance.scheduleCompletion(
-      DateTime.fromMillisecondsSinceEpoch(endAt),
-      title: 'Emergency complete',
-      body: '30 minutes passed — breathe and continue.',
-    );
+    if (notificationsEnabled) {
+      NotificationService.instance.scheduleCompletion(
+        DateTime.fromMillisecondsSinceEpoch(endAt),
+        title: 'Emergency complete',
+        body: '30 minutes passed — breathe and continue.',
+      );
+    }
     return state.copyWith(running: true, endAtEpochMillis: endAt, lastUpdatedEpochMillis: DateTime.now().millisecondsSinceEpoch);
   }
 
