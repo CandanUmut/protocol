@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/constants/app_constants.dart';
+import '../core/i18n/app_localizations.dart';
 import '../core/utils/date_utils.dart';
 import '../core/utils/haptics.dart';
 import '../core/utils/sound.dart';

@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader({super.key, required this.title, this.action});
+  const SectionHeader({super.key, required this.title, this.subtitle, this.action});
 
   final String title;
+  final String? subtitle;
   final Widget? action;
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium)),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: textTheme.titleMedium),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(subtitle!, style: textTheme.bodySmall?.copyWith(color: Colors.white70)),
+              ],
+            ],
+          ),
+        ),
         if (action != null) action!,
       ],
     );
