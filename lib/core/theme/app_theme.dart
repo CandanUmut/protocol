@@ -24,7 +24,7 @@ class AppTheme {
         scaffoldBackgroundColor: const Color(0xFF04070D),
         snackBarTheme: const SnackBarThemeData(behavior: SnackBarBehavior.floating),
         textTheme: _textTheme(Brightness.dark),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: DesignTokens.glassColor,
           elevation: DesignTokens.elevation,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DesignTokens.radiusMedium)),

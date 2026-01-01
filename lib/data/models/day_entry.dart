@@ -1,3 +1,5 @@
+enum DayStatus { good, partial, empty }
+
 class DayEntry {
   DayEntry({
     this.noNegotiation = false,
