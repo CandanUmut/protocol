@@ -6,6 +6,9 @@ import '../../state/app_controller.dart';
 import '../../widgets/animated_toggle_tile.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/section_header.dart';
+import '../../data/models/protocol.dart';
+import '../challenges/create_challenge_screen.dart';
+import '../templates/template_library_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -31,6 +34,33 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ]),
+        ),
+        const SizedBox(height: 12),
+        GlassCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SectionHeader(title: t.createChallengeTitle),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (_) => const CreateChallengeScreen())),
+                    icon: const Icon(Icons.add_circle_outline),
+                    label: Text(t.createChallengeTitle),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context)
+                        .push(MaterialPageRoute(builder: (_) => const TemplateLibraryScreen())),
+                    icon: const Icon(Icons.library_books),
+                    label: Text(t.templateLibraryTitle),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         GlassCard(
@@ -115,6 +145,37 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: t.hapticsBody,
                 value: state.hapticsEnabled,
                 onChanged: notifier.toggleHaptics,
+              ),
+              const SizedBox(height: 8),
+              SectionHeader(title: t.alarmIntensity),
+              DropdownButton<AlarmIntensity>(
+                value: state.alarmSettings.intensity,
+                onChanged: (v) {
+                  if (v != null) {
+                    notifier.updateAlarm(state.alarmSettings.copyWith(intensity: v));
+                  }
+                },
+                items: [
+                  DropdownMenuItem(value: AlarmIntensity.soft, child: Text(t.alarmSoft)),
+                  DropdownMenuItem(value: AlarmIntensity.strong, child: Text(t.alarmStrong)),
+                  DropdownMenuItem(value: AlarmIntensity.extreme, child: Text(t.alarmExtreme)),
+                ],
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Slider(
+                      min: 10,
+                      max: 20,
+                      divisions: 10,
+                      value: state.alarmSettings.autoStopSeconds.toDouble().clamp(10, 20),
+                      label: '${state.alarmSettings.autoStopSeconds}s',
+                      onChanged: (v) => notifier
+                          .updateAlarm(state.alarmSettings.copyWith(autoStopSeconds: v.round())),
+                    ),
+                  ),
+                  Text(t.alarmAutoStop),
+                ],
               ),
             ],
           ),

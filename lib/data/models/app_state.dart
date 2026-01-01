@@ -1,4 +1,5 @@
 import '../../core/constants/app_constants.dart';
+import '../../core/default_templates.dart';
 import '../../data/models/day_entry.dart';
 import '../../data/models/emergency_session.dart';
 import '../../data/models/emergency_timer_state.dart';
@@ -15,6 +16,7 @@ class AppStateModel {
     this.soundEnabled = false,
     this.hapticsEnabled = true,
     this.notificationsEnabled = true,
+    this.onboardingDone = false,
     List<Challenge>? challenges,
     String? activeChallengeId,
     List<ProtocolTemplate>? templates,
@@ -29,6 +31,7 @@ class AppStateModel {
   final bool soundEnabled;
   final bool hapticsEnabled;
   final bool notificationsEnabled;
+  final bool onboardingDone;
   final List<Challenge> challenges;
   final String activeChallengeId;
   final List<ProtocolTemplate> templates;
@@ -91,6 +94,7 @@ class AppStateModel {
     bool? soundEnabled,
     bool? hapticsEnabled,
     bool? notificationsEnabled,
+    bool? onboardingDone,
     List<Challenge>? challenges,
     String? activeChallengeId,
     List<ProtocolTemplate>? templates,
@@ -103,6 +107,7 @@ class AppStateModel {
       soundEnabled: soundEnabled ?? this.soundEnabled,
       hapticsEnabled: hapticsEnabled ?? this.hapticsEnabled,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
+      onboardingDone: onboardingDone ?? this.onboardingDone,
       challenges: resolvedChallenges,
       activeChallengeId: activeChallengeId ?? this.activeChallengeId,
       templates: templates ?? this.templates,
@@ -127,6 +132,7 @@ class AppStateModel {
       soundEnabled: json['soundEnabled'] as bool? ?? false,
       hapticsEnabled: json['hapticsEnabled'] as bool? ?? true,
       notificationsEnabled: json['notificationsEnabled'] as bool? ?? true,
+      onboardingDone: json['onboardingDone'] as bool? ?? false,
       challenges: challengeList.isEmpty ? [defaultChallenge()] : challengeList,
       activeChallengeId: json['activeChallengeId'] as String? ?? challengeList.first.id,
       templates: templates.isEmpty ? defaultTemplates() : templates,
@@ -142,56 +148,16 @@ class AppStateModel {
         'soundEnabled': soundEnabled,
         'hapticsEnabled': hapticsEnabled,
         'notificationsEnabled': notificationsEnabled,
+        'onboardingDone': onboardingDone,
         'challenges': challenges.map((e) => e.toJson()).toList(),
         'activeChallengeId': activeChallengeId,
         'templates': templates.map((e) => e.toJson()).toList(),
         'alarmSettings': alarmSettings.toJson(),
       };
 
-  static Challenge defaultChallenge() => Challenge();
+  static Challenge defaultChallenge() => Challenge(defaultProtocolTemplateId: defaultTemplates().first.id);
 
-  static List<ProtocolTemplate> defaultTemplates() => [
-        ProtocolTemplate(
-          id: 'evacuation',
-          name: 'Evacuation Protocol (Outdoor Reset)',
-          description: 'Get outside and reset quickly.',
-          steps: [
-            ProtocolStep(id: 'step1', title: 'Exit the building now', type: ProtocolStepType.action, critical: true, order: 0),
-            ProtocolStep(id: 'step2', title: 'Walk for 5 minutes', type: ProtocolStepType.timer, durationSec: 300, order: 1),
-            ProtocolStep(id: 'step3', title: 'Text a safe friend', type: ProtocolStepType.checkbox, order: 2),
-          ],
-        ),
-        ProtocolTemplate(
-          id: 'urge_surfing',
-          name: 'Urge Surfing Protocol (90 seconds)',
-          description: 'Ride out the urge without acting.',
-          steps: [
-            ProtocolStep(id: 'step1', title: 'Notice and name the urge', type: ProtocolStepType.checkbox, critical: true, order: 0),
-            ProtocolStep(id: 'step2', title: '90 second timer', type: ProtocolStepType.timer, durationSec: 90, order: 1),
-            ProtocolStep(id: 'step3', title: 'Slow breaths', type: ProtocolStepType.breathing, durationSec: 60, order: 2),
-          ],
-        ),
-        ProtocolTemplate(
-          id: 'digital_lockdown',
-          name: 'Digital Lockdown Protocol (WiFi off + Lockbox)',
-          description: 'Cut access and move away.',
-          steps: [
-            ProtocolStep(id: 'step1', title: 'Turn off WiFi + data', type: ProtocolStepType.action, critical: true, order: 0),
-            ProtocolStep(id: 'step2', title: 'Place device in lockbox', type: ProtocolStepType.action, order: 1),
-            ProtocolStep(id: 'step3', title: 'Timer: 15 minutes', type: ProtocolStepType.timer, durationSec: 900, order: 2),
-          ],
-        ),
-        ProtocolTemplate(
-          id: 'spiritual_reset',
-          name: 'Spiritual Reset',
-          description: 'Center yourself with water + calm breath.',
-          steps: [
-            ProtocolStep(id: 'step1', title: 'Wash hands / face', type: ProtocolStepType.action, critical: true, order: 0),
-            ProtocolStep(id: 'step2', title: 'Breathe slowly (2 min)', type: ProtocolStepType.breathing, durationSec: 120, order: 1),
-            ProtocolStep(id: 'step3', title: 'Grateful thought', type: ProtocolStepType.checkbox, order: 2),
-          ],
-        ),
-      ];
+  static List<ProtocolTemplate> defaultTemplates() => DefaultTemplates.pack;
 
   static AppStateModel _migrateV2ToV3(Map<String, dynamic> json) {
     final legacy = AppStateModel(

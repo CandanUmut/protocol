@@ -7,6 +7,7 @@ import 'features/dashboard/dashboard_screen.dart';
 import 'features/calendar/calendar_screen.dart';
 import 'features/emergency/emergency_screen.dart';
 import 'features/insights/insights_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'state/app_controller.dart';
 import 'widgets/gradient_background.dart';
@@ -17,6 +18,7 @@ class CloseTheRampApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appLocale = ref.watch(appLocaleProvider);
+    final state = ref.watch(appControllerProvider);
     return MaterialApp(
       title: 'Close the Ramp — Protocol',
       debugShowCheckedModeBanner: false,
@@ -31,7 +33,7 @@ class CloseTheRampApp extends ConsumerWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const _RootShell(),
+      home: state.onboardingDone ? const _RootShell() : const OnboardingScreen(),
     );
   }
 }

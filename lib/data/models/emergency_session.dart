@@ -10,6 +10,7 @@ class EmergencySession {
     this.durationSeconds = 0,
     this.trigger,
     this.note,
+    this.templateId,
   }) : steps = steps ?? _defaultSteps();
 
   final String id;
@@ -20,6 +21,7 @@ class EmergencySession {
   final int durationSeconds;
   final String? trigger;
   final String? note;
+  final String? templateId;
 
   EmergencySession copyWith({
     DateTime? completedAt,
@@ -28,6 +30,7 @@ class EmergencySession {
     int? durationSeconds,
     String? trigger,
     String? note,
+    String? templateId,
   }) {
     return EmergencySession(
       id: id,
@@ -38,6 +41,7 @@ class EmergencySession {
       durationSeconds: durationSeconds ?? this.durationSeconds,
       trigger: trigger ?? this.trigger,
       note: note ?? this.note,
+      templateId: templateId ?? this.templateId,
     );
   }
 
@@ -50,6 +54,7 @@ class EmergencySession {
         durationSeconds: json['durationSeconds'] as int? ?? 0,
         trigger: json['trigger'] as String?,
         note: json['note'] as String?,
+        templateId: json['templateId'] as String?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -61,6 +66,7 @@ class EmergencySession {
         'durationSeconds': durationSeconds,
         'trigger': trigger,
         'note': note,
+        'templateId': templateId,
       };
 
   static Map<String, bool> _defaultSteps() => {

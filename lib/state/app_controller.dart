@@ -7,7 +7,6 @@ import '../core/constants/app_constants.dart';
 import '../core/utils/date_utils.dart';
 import '../core/utils/haptics.dart';
 import '../core/utils/sound.dart';
-import '../core/i18n/app_localizations.dart';
 import '../data/models/app_state.dart';
 import '../data/models/challenge.dart';
 import '../data/models/day_entry.dart';
@@ -56,6 +55,8 @@ class AppController extends StateNotifier<AppStateModel> {
   Future<void> _persist() async => _repository.save(state);
 
   Challenge get _activeChallenge => state.activeChallenge;
+  ProtocolTemplate get _activeTemplate =>
+      state.templates.firstWhere((t) => t.id == _activeChallenge.defaultProtocolTemplateId, orElse: () => state.templates.first);
 
   void setLanguage(String code) {
     state = state.copyWith(lang: code);
@@ -66,6 +67,17 @@ class AppController extends StateNotifier<AppStateModel> {
   void setActiveChallenge(String id) {
     if (state.challenges.any((c) => c.id == id)) {
       state = state.copyWith(activeChallengeId: id);
+      _persist();
+    }
+  }
+
+  void saveTemplate(ProtocolTemplate template, {bool setAsDefault = false}) {
+    final filtered = state.templates.where((t) => t.id != template.id).toList();
+    final next = [...filtered, template];
+    state = state.copyWith(templates: next);
+    if (setAsDefault) {
+      setDefaultTemplate(template.id);
+    } else {
       _persist();
     }
   }
@@ -101,6 +113,22 @@ class AppController extends StateNotifier<AppStateModel> {
   void updateAlarm(AlarmSettings settings) {
     state = state.copyWith(alarmSettings: settings);
     _persist();
+  }
+
+  void completeOnboarding() {
+    state = state.copyWith(onboardingDone: true);
+    _persist();
+  }
+
+  void setDefaultTemplate(String templateId) {
+    if (!state.templates.any((t) => t.id == templateId)) return;
+    _updateActiveChallenge((challenge) => challenge.copyWith(defaultProtocolTemplateId: templateId));
+  }
+
+  List<ProtocolTemplate> recommendedTemplates(String type) {
+    final filtered = state.templates.where((t) => t.recommendedFor.contains(type)).toList();
+    if (filtered.isNotEmpty) return filtered.take(2).toList();
+    return state.templates.take(2).toList();
   }
 
   void updateRiskWindow(int startHour, int endHour) {
@@ -215,7 +243,7 @@ class AppController extends StateNotifier<AppStateModel> {
     final nextTimer = _timerService.start(_activeChallenge.timer, notificationsEnabled: state.notificationsEnabled);
     _updateActiveChallenge((challenge) => challenge.copyWith(timer: nextTimer));
     _ensureActiveEmergencySession();
-    if (state.soundEnabled) SoundPlayer.instance.playClick();
+    if (state.soundEnabled) SoundPlayer.instance.playAlarm(state.alarmSettings);
     _persist();
     _beginTicker();
   }
@@ -258,7 +286,15 @@ class AppController extends StateNotifier<AppStateModel> {
 
   void _ensureActiveEmergencySession() {
     if (_activeChallenge.activeEmergencySessionId != null) return;
-    final session = EmergencySession(id: const Uuid().v4(), startedAt: DateTime.now());
+    final template = _activeTemplate;
+    final sortedSteps = [...template.steps]..sort((a, b) => a.order.compareTo(b.order));
+    final stepMap = {for (final step in sortedSteps) step.id: false};
+    final session = EmergencySession(
+      id: const Uuid().v4(),
+      startedAt: DateTime.now(),
+      steps: stepMap,
+      templateId: template.id,
+    );
     final sessions = [..._activeChallenge.emergencySessions, session];
     final trimmed = sessions.length > 20 ? sessions.sublist(sessions.length - 20) : sessions;
     _updateActiveChallenge((challenge) => challenge.copyWith(
@@ -275,7 +311,7 @@ class AppController extends StateNotifier<AppStateModel> {
         ));
     _updateActiveChallenge((challenge) => challenge.copyWith(activeEmergencySessionId: null));
     _persist();
-    if (state.soundEnabled) SoundPlayer.instance.playChime();
+    if (state.soundEnabled) SoundPlayer.instance.playTimerDone();
   }
 
   void updateSessionStep(String stepKey, bool value) {
