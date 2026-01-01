@@ -41,3 +41,4 @@ flutter:
     - assets/sounds/alarm_soft.mp3
     - assets/sounds/alarm_strong.mp3
     - assets/sounds/alarm_extreme.mp3
+    - assets/sounds/timer_done.mp3

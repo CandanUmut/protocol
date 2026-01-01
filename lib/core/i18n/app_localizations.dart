@@ -95,6 +95,35 @@ class AppLocalizations {
   String get hapticsBody => _strings['haptics_body'] ?? '';
   String get dataControl => _strings['data_control'] ?? '';
   String get privacyInfo => _strings['privacy_info'] ?? '';
+  String get templateLibraryTitle => _strings['template_library_title'] ?? '';
+  String get useTemplate => _strings['use_template'] ?? '';
+  String get customizeSteps => _strings['customize_steps'] ?? '';
+  String get saveTemplate => _strings['save_template'] ?? '';
+  String get stepLabel => _strings['step_label'] ?? '';
+  String get createChallengeTitle => _strings['create_challenge_title'] ?? '';
+  String get chooseChallengeType => _strings['choose_challenge_type'] ?? '';
+  String get recommendedTemplates => _strings['recommended_templates'] ?? '';
+  String get browseTemplates => _strings['browse_templates'] ?? '';
+  String get challengeNicotine => _strings['challenge_nicotine'] ?? '';
+  String get challengeLust => _strings['challenge_lust'] ?? '';
+  String get challengeScrolling => _strings['challenge_scrolling'] ?? '';
+  String get challengeSugar => _strings['challenge_sugar'] ?? '';
+  String get challengeGambling => _strings['challenge_gambling'] ?? '';
+  String get challengeGaming => _strings['challenge_gaming'] ?? '';
+  String get challengeShopping => _strings['challenge_shopping'] ?? '';
+  String get challengeCustom => _strings['challenge_custom'] ?? '';
+  String get criticalLabel => _strings['critical_label'] ?? '';
+  String get onboardingTitle1 => _strings['onboarding_title_1'] ?? '';
+  String get onboardingTitle2 => _strings['onboarding_title_2'] ?? '';
+  String get onboardingTitle3 => _strings['onboarding_title_3'] ?? '';
+  String get onboardingSkip => _strings['onboarding_skip'] ?? '';
+  String get onboardingStart => _strings['onboarding_start'] ?? '';
+  String get alarmIntensity => _strings['alarm_intensity'] ?? '';
+  String get alarmSoft => _strings['alarm_soft'] ?? '';
+  String get alarmStrong => _strings['alarm_strong'] ?? '';
+  String get alarmExtreme => _strings['alarm_extreme'] ?? '';
+  String get alarmAutoStop => _strings['alarm_auto_stop'] ?? '';
+  String get templatePreview => _strings['template_preview'] ?? '';
 }
 
 class AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
