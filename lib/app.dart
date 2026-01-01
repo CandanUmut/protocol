@@ -47,7 +47,7 @@ class _RootShell extends ConsumerStatefulWidget {
 
 class _RootShellState extends ConsumerState<_RootShell> {
   int _index = 0;
-  final _pages = const [DashboardScreen(), CalendarScreen(), InsightsScreen(), SettingsScreen()];
+  final _pages = const [DashboardScreen(), CalendarScreen(), InsightsScreen()];
 
   @override
   Widget build(BuildContext context) {
@@ -78,11 +78,6 @@ class _RootShellState extends ConsumerState<_RootShell> {
               icon: const Icon(Icons.insights_outlined),
               selectedIcon: const Icon(Icons.insights),
               label: t.insights,
-            ),
-            NavigationDestination(
-              icon: const Icon(Icons.settings_outlined),
-              selectedIcon: const Icon(Icons.settings),
-              label: t.settings,
             ),
           ],
         ),

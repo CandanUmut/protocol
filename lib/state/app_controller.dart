@@ -21,7 +21,7 @@ import '../features/emergency/notification_service.dart';
 import '../features/emergency/timer_service.dart';
 
 final appRepositoryProvider = Provider<AppRepository>((_) => AppRepository());
-final selectedDateProvider = StateProvider<DateTime>((_) => DateTime.now());
+final selectedDateProvider = StateProvider<DateTime>((_) => startOfDay(DateTime.now()));
 
 final appControllerProvider = StateNotifierProvider<AppController, AppStateModel>((ref) {
   final repo = ref.watch(appRepositoryProvider);
@@ -31,21 +31,27 @@ final appControllerProvider = StateNotifierProvider<AppController, AppStateModel
 });
 
 class AppController extends StateNotifier<AppStateModel> {
-  AppController(this._ref, this._repository) : super(AppStateModel()) {
-    _init();
+  AppController(this._ref, this._repository)
+      : initialized = _initFuture(_ref, _repository),
+        super(AppStateModel()) {
+    initialized.then((loaded) {
+      state = loaded;
+      _resumeTimer();
+    });
+  }
+
+  static Future<AppStateModel> _initFuture(Ref ref, AppRepository repository) async {
+    final loaded = await repository.load();
+    ref.read(appLocaleProvider.notifier).setLocale(Locale(loaded.lang));
+    ref.read(selectedDateProvider.notifier).state = startOfDay(DateTime.now());
+    return loaded;
   }
 
   final Ref _ref;
   final AppRepository _repository;
   final TimerService _timerService = TimerService();
   Timer? _ticker;
-
-  Future<void> _init() async {
-    final loaded = await _repository.load();
-    state = loaded;
-    _ref.read(appLocaleProvider.notifier).setLocale(Locale(loaded.lang));
-    _resumeTimer();
-  }
+  final Future<AppStateModel> initialized;
 
   void dispose() {
     _ticker?.cancel();
@@ -214,7 +220,7 @@ class AppController extends StateNotifier<AppStateModel> {
   }
 
   void setSelectedDate(DateTime date) {
-    _ref.read(selectedDateProvider.notifier).state = date;
+    _ref.read(selectedDateProvider.notifier).state = startOfDay(date);
   }
 
   void _upsertDay(DateTime date, DayEntry entry) {
@@ -240,11 +246,19 @@ class AppController extends StateNotifier<AppStateModel> {
 
   Future<String> exportState() async => _repository.exportJson(state);
 
-  void startEmergencyTimer() {
+  Future<void> startEmergencyTimer({bool simulateSoundFailure = false}) async {
     final nextTimer = _timerService.start(_activeChallenge.timer, notificationsEnabled: state.notificationsEnabled);
     _updateActiveChallenge((challenge) => challenge.copyWith(timer: nextTimer));
     _ensureActiveEmergencySession();
-    if (state.soundEnabled) SoundPlayer.instance.playAlarm(state.alarmSettings);
+    bool played = false;
+    if (state.soundEnabled) {
+      played = await SoundPlayer.instance.playAlarm(state.alarmSettings, simulateFailure: simulateSoundFailure);
+    }
+    if (!played) {
+      debugPrint('Emergency sound fallback triggered');
+      lightHaptic(enabled: state.hapticsEnabled);
+    }
+    debugPrint('Emergency started at ${DateTime.now().toIso8601String()}');
     _persist();
     _beginTicker();
   }

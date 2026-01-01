@@ -42,6 +42,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 child: Text(DateFormat.yMMM(t.locale.languageCode).format(_focusedMonth), style: Theme.of(context).textTheme.titleLarge),
               ),
             ),
+            IconButton(onPressed: _today, icon: const Icon(Icons.today)),
             IconButton(onPressed: _nextMonth, icon: const Icon(Icons.chevron_right)),
           ],
         ),
@@ -115,6 +116,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   void _nextMonth() {
     setState(() => _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1));
+  }
+
+  void _today() {
+    final today = DateTime.now();
+    ref.read(appControllerProvider.notifier).setSelectedDate(today);
+    setState(() => _focusedMonth = DateTime(today.year, today.month, 1));
   }
 }
 
