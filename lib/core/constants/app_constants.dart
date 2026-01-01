@@ -1,5 +1,5 @@
 class AppConstants {
-  static const schemaVersion = 2;
+  static const schemaVersion = 3;
   static const defaultGoalDays = 30;
   static const defaultRequireWalk = true;
   static const timerDurationMinutes = 30;
