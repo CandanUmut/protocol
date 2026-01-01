@@ -83,7 +83,7 @@ class EmergencyScreen extends ConsumerWidget {
                                 icon: timer.running ? Icons.pause_circle : Icons.play_arrow,
                                 onPressed: timer.running
                                     ? ref.read(appControllerProvider.notifier).pauseEmergencyTimer
-                                    : ref.read(appControllerProvider.notifier).startEmergencyTimer,
+                                    : () => ref.read(appControllerProvider.notifier).startEmergencyTimer(),
                               ),
                               const SizedBox(width: 8),
                               IconButton(

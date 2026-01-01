@@ -15,6 +15,7 @@ import '../../widgets/chips.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/section_header.dart';
 import '../emergency/emergency_screen.dart';
+import '../settings/settings_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -61,10 +62,20 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 4),
               Text(t.todayStatus, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white70)),
             ]),
-            IconButton(
-              onPressed: () => _toggleLanguage(appState.lang),
-              icon: const Icon(Icons.language),
-              tooltip: t.languageToggle,
+            Row(
+              children: [
+                IconButton(
+                  onPressed: () => Navigator.of(context)
+                      .push(MaterialPageRoute(builder: (_) => const SettingsScreen(), fullscreenDialog: true)),
+                  icon: const Icon(Icons.settings_outlined),
+                  tooltip: t.settings,
+                ),
+                IconButton(
+                  onPressed: () => _toggleLanguage(appState.lang),
+                  icon: const Icon(Icons.language),
+                  tooltip: t.languageToggle,
+                ),
+              ],
             )
           ],
         ),

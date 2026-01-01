@@ -101,7 +101,7 @@ class _TimerControls extends ConsumerWidget {
         Row(
           children: [
             ElevatedButton.icon(
-              onPressed: timer.running ? notifier.pauseEmergencyTimer : notifier.startEmergencyTimer,
+              onPressed: timer.running ? notifier.pauseEmergencyTimer : () => notifier.startEmergencyTimer(),
               icon: Icon(timer.running ? Icons.pause : Icons.play_arrow),
               label: Text(timer.running ? t.timerPause : t.timerStart),
             ),

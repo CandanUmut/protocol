@@ -4,6 +4,10 @@ import 'package:close_the_ramp_protocol/data/models/day_entry.dart';
 import 'package:close_the_ramp_protocol/data/models/emergency_timer_state.dart';
 import 'package:close_the_ramp_protocol/data/models/protocol.dart';
 import 'package:close_the_ramp_protocol/data/models/protocol_step.dart';
+import 'package:close_the_ramp_protocol/data/repositories/app_repository.dart';
+import 'package:close_the_ramp_protocol/state/app_controller.dart';
+import 'package:close_the_ramp_protocol/core/utils/date_utils.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -73,4 +77,57 @@ void main() {
     const settings = AlarmSettings(enabled: true, autoStopSeconds: 15);
     expect(settings.autoStopSeconds, inInclusiveRange(10, 20));
   });
+
+  test('selectedDay defaults to today start of day', () {
+    final container = ProviderContainer();
+    final selected = container.read(selectedDateProvider);
+    expect(isoDate(selected), isoDate(DateTime.now()));
+    container.dispose();
+  });
+
+  test('notes save to the currently selected day', () async {
+    final repo = _MemoryRepo();
+    final container = ProviderContainer(overrides: [appRepositoryProvider.overrideWithValue(repo)]);
+    final controller = container.read(appControllerProvider.notifier);
+    await controller.initialized;
+    final targetDay = DateTime(2024, 1, 2);
+    controller.setSelectedDate(targetDay);
+    controller.updateNotes('hello world');
+    expect(controller.state.dayFor(targetDay).notes, 'hello world');
+    expect(controller.state.dayFor(DateTime(2024, 1, 3)).notes.isEmpty, true);
+    container.dispose();
+  });
+
+  test('emergency flow tolerates missing audio', () async {
+    final repo = _MemoryRepo();
+    final container = ProviderContainer(overrides: [appRepositoryProvider.overrideWithValue(repo)]);
+    final controller = container.read(appControllerProvider.notifier);
+    await controller.initialized;
+    await controller.startEmergencyTimer(simulateSoundFailure: true);
+    expect(controller.state.timer.running, true);
+    container.dispose();
+  });
+}
+
+class _MemoryRepo extends AppRepository {
+  AppStateModel _state = AppStateModel();
+
+  @override
+  Future<AppStateModel> load() async => _state;
+
+  @override
+  Future<void> save(AppStateModel state) async {
+    _state = state;
+  }
+
+  @override
+  Future<void> reset() async {
+    _state = AppStateModel();
+  }
+
+  @override
+  Future<String> exportJson(AppStateModel state) async => '';
+
+  @override
+  Future<AppStateModel?> importJson() async => _state;
 }

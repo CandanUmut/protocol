@@ -67,8 +67,8 @@ void main() {
     final repo = _FakeRepo();
     final container = ProviderContainer(overrides: [appRepositoryProvider.overrideWithValue(repo)]);
     final controller = container.read(appControllerProvider.notifier);
-    await Future.delayed(Duration.zero);
-    controller.startEmergencyTimer();
+    await controller.initialized;
+    await controller.startEmergencyTimer();
     final state = container.read(appControllerProvider);
     final session = state.emergencySessions.firstWhere((s) => s.id == state.activeEmergencySessionId);
     final template = DefaultTemplates.pack.first;
