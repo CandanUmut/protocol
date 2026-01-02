@@ -142,10 +142,10 @@ class _DayPanel extends ConsumerWidget {
         children: [
           Text(DateFormat.yMMMMd(t.locale.languageCode).format(selected), style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: [
-              FilterChip(
+        Wrap(
+          spacing: 8,
+          children: [
+            FilterChip(
                 label: Text(t.rule1),
                 selected: entry.noNegotiation,
                 onSelected: (v) => ref.read(appControllerProvider.notifier).toggleCore('noNegotiation', v),
@@ -183,14 +183,15 @@ class _DayPanel extends ConsumerWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(t.notes),
-          TextFormField(
-            initialValue: entry.notes,
-            maxLines: 3,
-            onChanged: (v) => ref.read(appControllerProvider.notifier).updateNotes(v),
-            decoration: const InputDecoration(hintText: '...'),
-          ),
+        const SizedBox(height: 12),
+        Text('${t.notes} — ${DateFormat('y-MM-dd').format(selected)}'),
+        TextFormField(
+          key: ValueKey(isoDate(selected)),
+          initialValue: entry.notes,
+          maxLines: 3,
+          onChanged: (v) => ref.read(appControllerProvider.notifier).updateNotes(v),
+          decoration: const InputDecoration(hintText: '...'),
+        ),
           const SizedBox(height: 12),
           _TodoList(entry: entry),
         ],

@@ -18,6 +18,7 @@ class SettingsScreen extends ConsumerWidget {
     final state = ref.watch(appControllerProvider);
     final t = AppLocalizations.of(context);
     final notifier = ref.read(appControllerProvider.notifier);
+    final diagnostics = notifier.diagnostics;
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -212,7 +213,42 @@ class SettingsScreen extends ConsumerWidget {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        Center(
+          child: GestureDetector(
+            onLongPress: () => _showDiagnostics(context, diagnostics),
+            child: Text(
+              'Close the Ramp – build v6',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.white60),
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  void _showDiagnostics(BuildContext context, List diagnostics) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.black87,
+      builder: (_) {
+        if (diagnostics.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('No emergency diagnostics yet.'),
+          );
+        }
+        return ListView.builder(
+          itemCount: diagnostics.length,
+          itemBuilder: (_, index) {
+            final item = diagnostics[index];
+            return ListTile(
+              title: Text('${item.action.toString().toUpperCase()} — ${item.audioSuccess ? 'audio ok' : 'silent'}'),
+              subtitle: Text('${item.timestamp.toIso8601String()} | attempted: ${item.audioAttempted}${item.error != null ? ' | ${item.error}' : ''}'),
+            );
+          },
+        );
+      },
     );
   }
 }
