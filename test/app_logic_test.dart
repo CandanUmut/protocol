@@ -105,6 +105,8 @@ void main() {
     await controller.initialized;
     await controller.startEmergencyTimer(simulateSoundFailure: true);
     expect(controller.state.timer.running, true);
+    expect(controller.diagnostics.isNotEmpty, true);
+    expect(controller.diagnostics.last.audioSuccess, false);
     container.dispose();
   });
 }

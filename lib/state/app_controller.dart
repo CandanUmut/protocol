@@ -7,12 +7,13 @@ import '../core/constants/app_constants.dart';
 import '../core/i18n/app_localizations.dart';
 import '../core/utils/date_utils.dart';
 import '../core/utils/haptics.dart';
-import '../core/utils/sound.dart';
+import '../core/utils/safe_audio_service.dart';
 import '../data/models/app_state.dart';
 import '../data/models/challenge.dart';
 import '../data/models/day_entry.dart';
 import '../data/models/emergency_session.dart';
 import '../data/models/emergency_timer_state.dart';
+import '../data/models/emergency_diagnostic.dart';
 import '../data/models/protocol.dart';
 import '../data/models/todo_item.dart';
 import '../data/models/trigger_log.dart';
@@ -50,8 +51,12 @@ class AppController extends StateNotifier<AppStateModel> {
   final Ref _ref;
   final AppRepository _repository;
   final TimerService _timerService = TimerService();
+  final SafeAudioService _safeAudioService = SafeAudioService();
   Timer? _ticker;
   final Future<AppStateModel> initialized;
+  final List<EmergencyDiagnostic> _diagnostics = [];
+
+  List<EmergencyDiagnostic> get diagnostics => List.unmodifiable(_diagnostics);
 
   void dispose() {
     _ticker?.cancel();
@@ -210,6 +215,11 @@ class AppController extends StateNotifier<AppStateModel> {
     final date = _ref.read(selectedDateProvider);
     final entry = _activeChallenge.dayFor(date);
     _upsertDay(date, entry.copyWith(emergencies: entry.emergencies + 1));
+    _logDiagnostic(
+      action: 'warning',
+      audioAttempted: false,
+      audioSuccess: false,
+    );
   }
 
   void markOutside() {
@@ -252,12 +262,18 @@ class AppController extends StateNotifier<AppStateModel> {
     _ensureActiveEmergencySession();
     bool played = false;
     if (state.soundEnabled) {
-      played = await SoundPlayer.instance.playAlarm(state.alarmSettings, simulateFailure: simulateSoundFailure);
+      played = await _safeAudioService.playAlarm(state.alarmSettings, simulateFailure: simulateSoundFailure);
     }
     if (!played) {
       debugPrint('Emergency sound fallback triggered');
       lightHaptic(enabled: state.hapticsEnabled);
     }
+    _logDiagnostic(
+      action: 'emergency',
+      audioAttempted: state.soundEnabled,
+      audioSuccess: played,
+      error: played ? null : 'alarm-fallback',
+    );
     debugPrint('Emergency started at ${DateTime.now().toIso8601String()}');
     _persist();
     _beginTicker();
@@ -326,7 +342,9 @@ class AppController extends StateNotifier<AppStateModel> {
         ));
     _updateActiveChallenge((challenge) => challenge.copyWith(activeEmergencySessionId: null));
     _persist();
-    if (state.soundEnabled) SoundPlayer.instance.playTimerDone();
+    if (state.soundEnabled) {
+      _safeAudioService.playDone();
+    }
   }
 
   void updateSessionStep(String stepKey, bool value) {
@@ -360,5 +378,19 @@ class AppController extends StateNotifier<AppStateModel> {
     final list = state.challenges.map((c) => c.id == _activeChallenge.id ? updated : c).toList();
     state = state.copyWith(challenges: list, activeChallengeId: updated.id);
     _persist();
+  }
+
+  void _logDiagnostic({required String action, required bool audioAttempted, required bool audioSuccess, String? error}) {
+    final entry = EmergencyDiagnostic(
+      timestamp: DateTime.now(),
+      action: action,
+      audioAttempted: audioAttempted,
+      audioSuccess: audioSuccess,
+      error: error,
+    );
+    _diagnostics.add(entry);
+    if (_diagnostics.length > 20) {
+      _diagnostics.removeAt(0);
+    }
   }
 }
